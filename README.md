@@ -8,10 +8,10 @@ With Docker no installation is required, the only dependence is Docker itself. U
 
 Docker can be downloaded freely from here: [https://store.docker.com/search?offering=community&type=edition](https://store.docker.com/search?offering=community&type=edition)
 
-To get an image of STREAM, simply execute the following command:
+To get an image of STREAM_web, simply execute the following command:
 
 ```sh
-$ docker pull pinellolab/stream
+$ docker pull pinellolab/stream_web
 ```
 
 
