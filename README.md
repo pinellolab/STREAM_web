@@ -14,20 +14,6 @@ To get an image of STREAM_web, simply execute the following command:
 $ docker pull pinellolab/stream_web
 ```
 
-
-Basic usage of *docker run* 
-
-```sh
-$ docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
-```
-
-OPTIONS:  
-```
---publish , -p	Publish a container’s port(s) to the host  
---volume , -v	Bind mount a volume  
---workdir , -w	Working directory inside the container  
-```
-
 STREAM interactive website
 --------------------------
 
