@@ -3,7 +3,7 @@
 ############################################################
 
 # Set the base image to stream
-FROM pinellolab/stream_bioconda
+FROM pinellolab/stream
 
 # File Author / Maintainer
 MAINTAINER Huidong Chen
