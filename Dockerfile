@@ -3,7 +3,7 @@
 ############################################################
 
 # Set the base image to stream
-FROM pinellolab/stream:0.3.2
+FROM pinellolab/stream:0.3.6
 
 # File Author / Maintainer
 MAINTAINER Huidong Chen

@@ -867,11 +867,14 @@ app.layout = html.Div([
 
 				html.Div([
 
+					html.Label('LOESS Fraction', style = {'font-weight':'bold', 'padding-right':'10px'}),
+					dcc.Input(id = 'loess_frac', value = 0.1),					
+
 					html.Label('LLE Neighbours', style = {'font-weight':'bold', 'padding-right':'10px'}),
 					dcc.Input(id = 'lle-nbs', value = 0.1),
 
 					html.Label('LLE Components', style = {'font-weight':'bold', 'padding-right':'10px'}),
-					dcc.Input(id = 'lle-dr', value = 3),
+					dcc.Input(id = 'lle-dr', value = 3),				
 
 					], className = 'six columns'),
 
@@ -891,9 +894,6 @@ app.layout = html.Div([
 
 							html.Div([
 
-								html.Label('LOESS Fraction', style = {'font-weight':'bold', 'padding-right':'10px'}),
-								dcc.Input(id = 'loess_frac', value = 0.1),
-
 								html.Label('Number of PCs', style = {'font-weight':'bold', 'padding-right':'10px'}),
 								dcc.Input(id = 'pca_n_PC', value = 15),
 
@@ -910,8 +910,21 @@ app.layout = html.Div([
 								# html.Label('Feature Genes', style = {'font-weight':'bold', 'padding-right':'10px'}),
 								# dcc.Input(id = 'feature_genes', value = None),
 
-								html.Label('AP Damping Factor', style = {'font-weight':'bold', 'padding-right':'10px'}),
-								dcc.Input(id = 'AP_damping_factor', value = 0.75),
+								html.Label('Clustering Method', style = {'font-weight':'bold', 'padding-right':'10px'}),
+								dcc.RadioItems(
+									id = 'clustering', 
+									options=[
+								        {'label': 'affinity propagation', 'value': 'ap'},
+							            {'label': 'k-means', 'value': 'kmeans'},
+							            {'label': 'spectral clustering', 'value': 'sc'}
+									],
+									value = 'kmeans'),
+
+								html.Label('Number of Clusters', style = {'font-weight':'bold', 'padding-right':'10px'}),
+								dcc.Input(id = 'n_clusters', value = 10),								
+
+								html.Label('Damping Factor', style = {'font-weight':'bold', 'padding-right':'10px'}),
+								dcc.Input(id = 'damping', value = 0.75),
 
 								], className = 'three columns'),
 
@@ -986,7 +999,7 @@ app.layout = html.Div([
 							html.Div([
 
 								html.Label('EPG Shift', style = {'font-weight':'bold', 'padding-right':'10px'}),
-                                dcc.RadioItems(
+                                dcc.Dropdown(
 							    	id = 'EPG_shift',
 							        options=[
 							            {'label': 'Yes', 'value': 'True'},
@@ -1822,7 +1835,9 @@ def num_clicks_compute(n_clicks, pathname):
     State('pca_n_PC', 'value'),
     State('pca_first_PC', 'value'),
     # State('feature_genes', 'value'),
-    State('AP_damping_factor', 'value'),
+    State('clustering', 'value'),
+    State('n_clusters', 'value'),
+    State('damping', 'value'),
     State('EPG_n_nodes', 'value'),
     State('EPG_lambda', 'value'),
     State('EPG_mu', 'value'),
@@ -1842,7 +1857,7 @@ def num_clicks_compute(n_clicks, pathname):
     State('EPG_ext_par', 'value'),
     State('disable_EPG_optimize', 'value')])
 
-def compute_trajectories(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, select,loess_frac,pca_n_PC,pca_first_PC,AP_damping_factor,EPG_n_nodes,EPG_lambda,EPG_mu,EPG_trimmingradius,EPG_alpha,EPG_collapse,EPG_collapse_mode,EPG_collapse_par,EPG_shift,EPG_shift_mode,EPG_shift_DR,EPG_shift_maxshift,disable_EPG_ext,EPG_ext_mode,EPG_ext_par,disable_EPG_optimize):
+def compute_trajectories(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, select,loess_frac,pca_n_PC,pca_first_PC,clustering,n_clusters,damping,EPG_n_nodes,EPG_lambda,EPG_mu,EPG_trimmingradius,EPG_alpha,EPG_collapse,EPG_collapse_mode,EPG_collapse_par,EPG_shift,EPG_shift_mode,EPG_shift_DR,EPG_shift_maxshift,disable_EPG_ext,EPG_ext_mode,EPG_ext_par,disable_EPG_optimize):
 
 	if pathname:
 
@@ -1889,7 +1904,7 @@ def compute_trajectories(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, 
 			# 	color_plot = [cell_label_colors_dict[x] for x in cell_label_list]
 
 			arguments = {'-m':[], '-l':[], '-c':[], '-o': [RESULTS_FOLDER], '--norm':[norm], '--log2':[log2], '--atac':[atac], '--lle_components':[lle_dr], '--lle_neighbours':[lle_nbs], '--select_features':[select],
-			'--loess_frac':[loess_frac], '--pca_n_PC':[pca_n_PC], '--pca_first_PC':[pca_first_PC],'--AP_damping_factor':[AP_damping_factor],'--EPG_n_nodes':[EPG_n_nodes],
+			'--loess_frac':[loess_frac], '--pca_n_PC':[pca_n_PC], '--pca_first_PC':[pca_first_PC],'--clustering':[clustering],'--n_clusters':[n_clusters],'--damping':[damping],'--EPG_n_nodes':[EPG_n_nodes],
 			'--EPG_lambda':[EPG_lambda],'--EPG_mu':[EPG_mu],'--EPG_trimmingradius':[EPG_trimmingradius],'--EPG_alpha':[EPG_alpha],'--EPG_collapse':[EPG_collapse],
 			'--EPG_collapse_mode':[EPG_collapse_mode],'--EPG_collapse_par':[EPG_collapse_par],'--EPG_shift':[EPG_shift],'--EPG_shift_mode':[EPG_shift_mode],'--EPG_shift_DR':[EPG_shift_DR],'--EPG_shift_maxshift':[EPG_shift_maxshift],
 			'--disable_EPG_ext':[disable_EPG_ext],'--EPG_ext_mode':[EPG_ext_mode],'--EPG_ext_par':[EPG_ext_par],'--disable_EPG_optimize':[disable_EPG_optimize]}
@@ -1963,7 +1978,7 @@ def update_container(n_clicks, segmentation_container, pathname):
 def update_container(dataset, stream_plot_src, pathname, root):
 
 	rainbow_plot = '/stream_web/precomputed/%s/STREAM_result/%s/stream_plot.png' % (dataset, root)
-	rainbow_plot_image = base64.b64encode(open(rainbow_plot, 'rb').read())
+	rainbow_plot_image = base64.b64encode(open(rainbow_plot, 'rb').read()).decode('ascii')
 
 	if 'data:image/png;base64,{}'.format(rainbow_plot_image) == stream_plot_src:
 
@@ -2026,7 +2041,7 @@ def compute_trajectories(pathname, n_clicks):
 			f_data = f.readlines()
 			f.close()
 
-			if 'Finished computation...\n' in f_data:
+			if 'Finished computation.\n' in f_data:
 
 				# print 'PASSING 2222222222 LOLOLOLOLOLOLOLOLOLOLOLOLOLOLOLOLOL'
 
@@ -2480,7 +2495,7 @@ def compute_trajectories(pathname, threed_scatter, n_clicks):
 			f_data = f.readlines()
 			f.close()
 
-			if 'Finished computation...\n' in f_data:
+			if 'Finished computation.\n' in f_data:
                 # print('---------------------- FINISHED COMPUTATION EXISTS IN LOG1!!!!!! ----------------------')
 
 				matrix = glob.glob(UPLOADS_FOLDER + '/Data_Matrix*')
@@ -3220,7 +3235,7 @@ def num_clicks_compute(root, dataset):
 	try:
 
 		rainbow_plot = '/stream_web/precomputed/%s/STREAM_result/%s/stream_plot.png' % (dataset, root)
-		rainbow_plot_image = base64.b64encode(open(rainbow_plot, 'rb').read())
+		rainbow_plot_image = base64.b64encode(open(rainbow_plot, 'rb').read()).decode('ascii')
 
 		return 'data:image/png;base64,{}'.format(rainbow_plot_image)
 
@@ -3439,7 +3454,9 @@ def num_clicks_compute(n_clicks, pathname):
     State('pca_n_PC', 'value'),
     State('pca_first_PC', 'value'),
     # State('feature_genes', 'value'),
-    State('AP_damping_factor', 'value'),
+    State('clustering', 'value'),
+    State('n_clusters', 'value'),
+    State('damping', 'value'),
     State('EPG_n_nodes', 'value'),
     State('EPG_lambda', 'value'),
     State('EPG_mu', 'value'),
@@ -3459,7 +3476,7 @@ def num_clicks_compute(n_clicks, pathname):
     State('EPG_ext_par', 'value'),
     State('disable_EPG_optimize', 'value')])
 
-def compute_single_gene(n_clicks, pathname, root, gene, norm, log2, atac, lle_dr, lle_nbs, select, loess_frac,pca_n_PC,pca_first_PC,AP_damping_factor,EPG_n_nodes,EPG_lambda,EPG_mu,EPG_trimmingradius,EPG_alpha,EPG_collapse,EPG_collapse_mode,EPG_collapse_par,EPG_shift,EPG_shift_mode,EPG_shift_DR,EPG_shift_maxshift,disable_EPG_ext,EPG_ext_mode,EPG_ext_par,disable_EPG_optimize):
+def compute_single_gene(n_clicks, pathname, root, gene, norm, log2, atac, lle_dr, lle_nbs, select, loess_frac,pca_n_PC,pca_first_PC,clustering,n_clusters,damping,EPG_n_nodes,EPG_lambda,EPG_mu,EPG_trimmingradius,EPG_alpha,EPG_collapse,EPG_collapse_mode,EPG_collapse_par,EPG_shift,EPG_shift_mode,EPG_shift_DR,EPG_shift_maxshift,disable_EPG_ext,EPG_ext_mode,EPG_ext_par,disable_EPG_optimize):
 
 	if pathname:
 
@@ -3477,7 +3494,7 @@ def compute_single_gene(n_clicks, pathname, root, gene, norm, log2, atac, lle_dr
 			cell_label_colors = glob.glob(UPLOADS_FOLDER + '/Cell_Label_Colors*')
 
 			arguments = {'-m':[], '-l':[], '-c':[], '-o': [RESULTS_FOLDER], '--norm':[norm], '--log2':[log2], '--atac':[atac], '--lle_components':[lle_dr], '--lle_neighbours':[lle_nbs], '--select_features':[select],
-			'--loess_frac':[loess_frac], '--pca_n_PC':[pca_n_PC], '--pca_first_PC':[pca_first_PC],'--AP_damping_factor':[AP_damping_factor],'--EPG_n_nodes':[EPG_n_nodes],
+			'--loess_frac':[loess_frac], '--pca_n_PC':[pca_n_PC], '--pca_first_PC':[pca_first_PC],'--clustering':[clustering],'--n_clusters':[n_clusters],'--damping':[damping],'--EPG_n_nodes':[EPG_n_nodes],
 			'--EPG_lambda':[EPG_lambda],'--EPG_mu':[EPG_mu],'--EPG_trimmingradius':[EPG_trimmingradius],'--EPG_alpha':[EPG_alpha],'--EPG_collapse':[EPG_collapse],
 			'--EPG_collapse_mode':[EPG_collapse_mode],'--EPG_collapse_par':[EPG_collapse_par],'--EPG_shift':[EPG_shift],'--EPG_shift_mode':[EPG_shift_mode],'--EPG_shift_DR':[EPG_shift_DR],'--EPG_shift_maxshift':[EPG_shift_maxshift],
 			'--disable_EPG_ext':[disable_EPG_ext],'--EPG_ext_mode':[EPG_ext_mode],'--EPG_ext_par':[EPG_ext_par],'--disable_EPG_optimize':[disable_EPG_optimize]}
@@ -3594,7 +3611,7 @@ def compute_trajectories(pathname, n_clicks, root, gene):
 			f_data = f.readlines()
 			f.close()
 
-			if 'Finished computation...\n' in f_data:
+			if 'Finished computation.\n' in f_data:
 
 				matrix = glob.glob(UPLOADS_FOLDER + '/Data_Matrix*')
 				cell_label = glob.glob(UPLOADS_FOLDER + '/Cell_Labels*')
@@ -3865,7 +3882,7 @@ def num_clicks_compute(figure, pathname, root, gene):
 			try:
 
 				discovery_plot = RESULTS_FOLDER + '/%s/stream_plot_%s.png' % (root, gene)
-				discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read())
+				discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read()).decode('ascii')
 
 				return 'data:image/png;base64,{}'.format(discovery_plot_image)
 
@@ -3884,7 +3901,7 @@ def num_clicks_compute(dataset, gene, root):
 	try:
 
 		discovery_plot = '/stream_web/precomputed/%s/STREAM_result/%s/stream_plot_%s.png' % (dataset, root, gene)
-		discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read())
+		discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read()).decode('ascii')
 		return 'data:image/png;base64,{}'.format(discovery_plot_image)
 
 	except:
@@ -4061,7 +4078,9 @@ def num_clicks_compute(n_clicks, pathname):
     State('pca_n_PC', 'value'),
     State('pca_first_PC', 'value'),
     # State('feature_genes', 'value'),
-    State('AP_damping_factor', 'value'),
+    State('clustering', 'value'),
+    State('n_clusters', 'value'),
+    State('damping', 'value'),
     State('EPG_n_nodes', 'value'),
     State('EPG_lambda', 'value'),
     State('EPG_mu', 'value'),
@@ -4083,7 +4102,7 @@ def num_clicks_compute(n_clicks, pathname):
     State('root', 'value'),
     State('discovery-gene', 'value')])
 
-def compute_discovery(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, select,loess_frac,pca_n_PC,pca_first_PC,AP_damping_factor,EPG_n_nodes,EPG_lambda,EPG_mu,EPG_trimmingradius,EPG_alpha,EPG_collapse,EPG_collapse_mode,EPG_collapse_par,EPG_shift,EPG_shift_mode,EPG_shift_DR,EPG_shift_maxshift,disable_EPG_ext,EPG_ext_mode,EPG_ext_par,disable_EPG_optimize,root,gene):
+def compute_discovery(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, select,loess_frac,pca_n_PC,pca_first_PC,clustering,n_clusters,damping,EPG_n_nodes,EPG_lambda,EPG_mu,EPG_trimmingradius,EPG_alpha,EPG_collapse,EPG_collapse_mode,EPG_collapse_par,EPG_shift,EPG_shift_mode,EPG_shift_DR,EPG_shift_maxshift,disable_EPG_ext,EPG_ext_mode,EPG_ext_par,disable_EPG_optimize,root,gene):
 
 	if pathname:
 
@@ -4101,7 +4120,7 @@ def compute_discovery(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, sel
 			cell_label_colors = glob.glob(UPLOADS_FOLDER + '/Cell_Label_Colors*')
 
 			arguments = {'-m':[], '-l':[], '-c':[], '-o': [RESULTS_FOLDER], '--norm':[norm], '--log2':[log2], '--atac':[atac], '--lle_components':[lle_dr], '--lle_neighbours':[lle_nbs], '--select_features':[select],
-			'--loess_frac':[loess_frac], '--pca_n_PC':[pca_n_PC], '--pca_first_PC':[pca_first_PC],'--AP_damping_factor':[AP_damping_factor],'--EPG_n_nodes':[EPG_n_nodes],
+			'--loess_frac':[loess_frac], '--pca_n_PC':[pca_n_PC], '--pca_first_PC':[pca_first_PC],'--clustering':[clustering],'--n_clusters':[n_clusters],'--damping':[damping],'--EPG_n_nodes':[EPG_n_nodes],
 			'--EPG_lambda':[EPG_lambda],'--EPG_mu':[EPG_mu],'--EPG_trimmingradius':[EPG_trimmingradius],'--EPG_alpha':[EPG_alpha],'--EPG_collapse':[EPG_collapse],
 			'--EPG_collapse_mode':[EPG_collapse_mode],'--EPG_collapse_par':[EPG_collapse_par],'--EPG_shift':[EPG_shift],'--EPG_shift_mode':[EPG_shift_mode],'--EPG_shift_DR':[EPG_shift_DR],'--EPG_shift_maxshift':[EPG_shift_maxshift],
 			'--disable_EPG_ext':[disable_EPG_ext],'--EPG_ext_mode':[EPG_ext_mode],'--EPG_ext_par':[EPG_ext_par],'--disable_EPG_optimize':[disable_EPG_optimize]}
@@ -4125,7 +4144,7 @@ def compute_discovery(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, sel
 						arguments_final.append(arguments[arg][0])
 
 			if not param_dict['discovery-run']:
-				sb.call('stream --for_web --DE ' + ' '.join(map(str, arguments_final)) + ' > %s/log3.txt' % (RESULTS_FOLDER), shell = True)
+				sb.call('stream --for_web --DE -p ' + ' '.join(map(str, arguments_final)) + ' > %s/log3.txt' % (RESULTS_FOLDER), shell = True)
 
 			return {'display': 'block'}
 
@@ -4216,7 +4235,7 @@ def compute_trajectories(pathname, root, gene, n_clicks):
 			f_data = f.readlines()
 			f.close()
 
-			if 'Finished computation...\n' in f_data:
+			if 'Finished computation.\n' in f_data:
 
 				matrix = glob.glob(UPLOADS_FOLDER + '/Data_Matrix*')
 				cell_label = glob.glob(UPLOADS_FOLDER + '/Cell_Labels*')
@@ -4506,7 +4525,7 @@ def num_clicks_compute(root, gene, dataset):
 	try:
 
 		discovery_plot = '/stream_web/precomputed/%s/STREAM_result/%s/stream_plot_%s.png' % (dataset, root, gene)
-		discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read())
+		discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read()).decode('ascii')
 
 		return 'data:image/png;base64,{}'.format(discovery_plot_image)
 
@@ -4856,7 +4875,9 @@ def num_clicks_compute(n_clicks, pathname):
     State('pca_n_PC', 'value'),
     State('pca_first_PC', 'value'),
     # State('feature_genes', 'value'),
-    State('AP_damping_factor', 'value'),
+    State('clustering', 'value'),
+    State('n_clusters', 'value'),
+    State('damping', 'value'),
     State('EPG_n_nodes', 'value'),
     State('EPG_lambda', 'value'),
     State('EPG_mu', 'value'),
@@ -4878,7 +4899,7 @@ def num_clicks_compute(n_clicks, pathname):
     State('root', 'value'),
     State('correlation-gene', 'value')])
 
-def compute_correlation(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, select,loess_frac,pca_n_PC,pca_first_PC,AP_damping_factor,EPG_n_nodes,EPG_lambda,EPG_mu,EPG_trimmingradius,EPG_alpha,EPG_collapse,EPG_collapse_mode,EPG_collapse_par,EPG_shift,EPG_shift_mode,EPG_shift_DR,EPG_shift_maxshift,disable_EPG_ext,EPG_ext_mode,EPG_ext_par,disable_EPG_optimize,root,gene):
+def compute_correlation(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, select,loess_frac,pca_n_PC,pca_first_PC,clustering,n_clusters,damping,EPG_n_nodes,EPG_lambda,EPG_mu,EPG_trimmingradius,EPG_alpha,EPG_collapse,EPG_collapse_mode,EPG_collapse_par,EPG_shift,EPG_shift_mode,EPG_shift_DR,EPG_shift_maxshift,disable_EPG_ext,EPG_ext_mode,EPG_ext_par,disable_EPG_optimize,root,gene):
 
 	if pathname:
 
@@ -4896,7 +4917,7 @@ def compute_correlation(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, s
 			cell_label_colors = glob.glob(UPLOADS_FOLDER + '/Cell_Label_Colors*')
 
 			arguments = {'-m':[], '-l':[], '-c':[], '-o': [RESULTS_FOLDER], '--norm':[norm], '--log2':[log2], '--atac':[atac], '--lle_components':[lle_dr], '--lle_neighbours':[lle_nbs], '--select_features':[select],
-			'--loess_frac':[loess_frac], '--pca_n_PC':[pca_n_PC], '--pca_first_PC':[pca_first_PC],'--AP_damping_factor':[AP_damping_factor],'--EPG_n_nodes':[EPG_n_nodes],
+			'--loess_frac':[loess_frac], '--pca_n_PC':[pca_n_PC], '--pca_first_PC':[pca_first_PC],'--clustering':[clustering],'--n_clusters':[n_clusters],'--damping':[damping],'--EPG_n_nodes':[EPG_n_nodes],
 			'--EPG_lambda':[EPG_lambda],'--EPG_mu':[EPG_mu],'--EPG_trimmingradius':[EPG_trimmingradius],'--EPG_alpha':[EPG_alpha],'--EPG_collapse':[EPG_collapse],
 			'--EPG_collapse_mode':[EPG_collapse_mode],'--EPG_collapse_par':[EPG_collapse_par],'--EPG_shift':[EPG_shift],'--EPG_shift_mode':[EPG_shift_mode],'--EPG_shift_DR':[EPG_shift_DR],'--EPG_shift_maxshift':[EPG_shift_maxshift],
 			'--disable_EPG_ext':[disable_EPG_ext],'--EPG_ext_mode':[EPG_ext_mode],'--EPG_ext_par':[EPG_ext_par],'--disable_EPG_optimize':[disable_EPG_optimize]}
@@ -4920,7 +4941,7 @@ def compute_correlation(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, s
 						arguments_final.append(arguments[arg][0])
 
 			if not param_dict['correlation-run']:
-				sb.call('stream --for_web --TG ' + ' '.join(map(str, arguments_final)) + ' > %s/log4.txt' % (RESULTS_FOLDER), shell = True)
+				sb.call('stream --for_web --TG -p ' + ' '.join(map(str, arguments_final)) + ' > %s/log4.txt' % (RESULTS_FOLDER), shell = True)
 
 			return {'display': 'block'}
 
@@ -5011,7 +5032,7 @@ def compute_trajectories(pathname, root, gene, n_clicks):
 			f_data = f.readlines()
 			f.close()
 
-			if 'Finished computation...\n' in f_data:
+			if 'Finished computation.\n' in f_data:
 
 				matrix = glob.glob(UPLOADS_FOLDER + '/Data_Matrix*')
 				cell_label = glob.glob(UPLOADS_FOLDER + '/Cell_Labels*')
@@ -5301,7 +5322,7 @@ def num_clicks_compute(root, gene, dataset):
 	try:
 
 		discovery_plot = '/stream_web/precomputed/%s/STREAM_result/%s/stream_plot_%s.png' % (dataset, root, gene)
-		discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read())
+		discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read()).decode('ascii')
 
 		return 'data:image/png;base64,{}'.format(discovery_plot_image)
 
@@ -5434,7 +5455,7 @@ def download_container(figure, pathname):
 			f_data = f.readlines()
 			f.close()
 
-			if 'Finished computation...\n' in f_data:
+			if 'Finished computation.\n' in f_data:
 				return {'display': 'block'}
 
 			else:
