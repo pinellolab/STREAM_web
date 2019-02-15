@@ -76,16 +76,16 @@ def get_data(path):
         return os.path.join(_ROOT, path)
 
 # STREAM logo
-stream_logo = get_data('stream_logo.png')
+stream_logo = get_data('/stream_web/static/stream_logo.png')
 stream_logo_image = base64.b64encode(open(stream_logo, 'rb').read())
 
-mgh_logo = get_data('mgh.png')
+mgh_logo = get_data('/stream_web/static/mgh.png')
 mgh_logo_image = base64.b64encode(open(mgh_logo, 'rb').read())
 
-mitbe_logo = get_data('mitbe.png')
+mitbe_logo = get_data('/stream_web/static/mitbe.png')
 mitbe_logo_image = base64.b64encode(open(mitbe_logo, 'rb').read())
 
-hms_logo = get_data('hms.png')
+hms_logo = get_data('/stream_web/static/hms.png')
 hms_logo_image = base64.b64encode(open(hms_logo, 'rb').read())
 
 # Generate ID to initialize CRISPR-SURF instance
@@ -907,8 +907,8 @@ app.layout = html.Div([
 							        value = 'False',
 							        labelStyle={'display': 'inline-block'}),
 
-								html.Label('Feature Genes', style = {'font-weight':'bold', 'padding-right':'10px'}),
-								dcc.Input(id = 'feature_genes', value = None),
+								# html.Label('Feature Genes', style = {'font-weight':'bold', 'padding-right':'10px'}),
+								# dcc.Input(id = 'feature_genes', value = None),
 
 								html.Label('AP Damping Factor', style = {'font-weight':'bold', 'padding-right':'10px'}),
 								dcc.Input(id = 'AP_damping_factor', value = 0.75),
@@ -929,29 +929,36 @@ app.layout = html.Div([
 								html.Label('EPG Trimming Radius', style = {'font-weight':'bold', 'padding-right':'10px'}),
 								dcc.Input(id = 'EPG_trimmingradius', value = 1000000),
 
-								html.Label('EPG Final Energy', style = {'font-weight':'bold', 'padding-right':'10px'}),
-								dcc.RadioItems(
-							    	id = 'EPG_finalenergy',
-							        options=[
-								        {'label': 'Penalized', 'value': 'Penalized'},
-							            {'label': 'Base', 'value': 'Base'},
-							        ],
-							        value = 'Penalized'),
+								# html.Label('EPG Final Energy', style = {'font-weight':'bold', 'padding-right':'10px'}),
+								# dcc.RadioItems(
+							    # 	id = 'EPG_finalenergy',
+							    #     options=[
+								#         {'label': 'Penalized', 'value': 'Penalized'},
+							    #         {'label': 'Base', 'value': 'Base'},
+							    #     ],
+							    #     value = 'Penalized'),
 
 								html.Label('EPG Alpha', style = {'font-weight':'bold', 'padding-right':'10px'}),
 								dcc.Input(id = 'EPG_alpha', value = 0.02),
 
-								html.Label('EPG Beta', style = {'font-weight':'bold', 'padding-right':'10px'}),
-								dcc.Input(id = 'EPG_beta', value = 0),
+                                html.Label('Disable EPG Finetune', style = {'font-weight':'bold', 'padding-right':'10px'}),
+                                dcc.RadioItems(
+							    	id = 'disable_EPG_optimize',
+							        options=[
+							            {'label': 'Yes', 'value': 'True'},
+							            {'label': 'No', 'value': 'False'}
+							        ],
+							        value = 'False',
+							        labelStyle={'display': 'inline-block'}),
 
 
 								], className = 'three columns'),
 
 							html.Div([
 
-								html.Label('Disable EPG Collapse', style = {'font-weight':'bold', 'padding-right':'10px'}),
+								html.Label('EPG Collapse', style = {'font-weight':'bold', 'padding-right':'10px'}),
 								dcc.RadioItems(
-							    	id = 'disable_EPG_collapse',
+							    	id = 'EPG_collapse',
 							        options=[
 							            {'label': 'Yes', 'value': 'True'},
 							            {'label': 'No', 'value': 'False'}
@@ -960,7 +967,7 @@ app.layout = html.Div([
 							        labelStyle={'display': 'inline-block'}),
 
 								html.Label('EPG Collapse Mode', style = {'font-weight':'bold', 'padding-right':'10px'}),
-								dcc.RadioItems(
+								dcc.Dropdown(
 							    	id = 'EPG_collapse_mode',
 							        options=[
 								        {'label': 'Point Number', 'value': 'PointNumber'},
@@ -972,28 +979,20 @@ app.layout = html.Div([
 							        value = 'PointNumber'),
 
 								html.Label('EPG Collapse Parameter', style = {'font-weight':'bold', 'padding-right':'10px'}),
-								dcc.RadioItems(
-							    	id = 'EPG_collapse_par',
-							        options=[
-							            {'label': 'Yes', 'value': 'True'},
-							            {'label': 'No', 'value': 'False'}
-							        ],
-							        value = 'False',
-							        labelStyle={'display': 'inline-block'}),
+                                dcc.Input(id = 'EPG_collapse_par', value = 5),
 
 								], className = 'three columns'),
 
 							html.Div([
 
 								html.Label('EPG Shift', style = {'font-weight':'bold', 'padding-right':'10px'}),
-								dcc.RadioItems(
+                                dcc.RadioItems(
 							    	id = 'EPG_shift',
 							        options=[
 							            {'label': 'Yes', 'value': 'True'},
 							            {'label': 'No', 'value': 'False'}
 							        ],
-							        value = 'False',
-							        labelStyle={'display': 'inline-block'}),
+							        value = 'False'),
 
 								html.Label('EPG Shift Mode', style = {'font-weight':'bold', 'padding-right':'10px'}),
 								dcc.RadioItems(
@@ -1021,7 +1020,7 @@ app.layout = html.Div([
 							        labelStyle={'display': 'inline-block'}),
 
 								html.Label('EPG Extend Mode', style = {'font-weight':'bold', 'padding-right':'10px'}),
-								dcc.RadioItems(
+								dcc.Dropdown(
 							    	id = 'EPG_ext_mode',
 							        options=[
 								        {'label': 'Quant Dists', 'value': 'QuantDists'},
@@ -1032,6 +1031,16 @@ app.layout = html.Div([
 
 								html.Label('EPG Extend Parameter', style = {'font-weight':'bold', 'padding-right':'10px'}),
 								dcc.Input(id = 'EPG_ext_par', value = 0.5),
+
+                                # html.Label('Disable EPG Finetune', style = {'font-weight':'bold', 'padding-right':'10px'}),
+                                # dcc.RadioItems(
+							    # 	id = 'disable_EPG_optimize',
+							    #     options=[
+							    #         {'label': 'Yes', 'value': 'True'},
+							    #         {'label': 'No', 'value': 'False'}
+							    #     ],
+							    #     value = 'False',
+							    #     labelStyle={'display': 'inline-block'}),
 
 								], className = 'three columns'),
 
@@ -1474,7 +1483,7 @@ app.layout = html.Div([
 
 def num_clicks_compute(pathname):
 
-	json_list = glob.glob('/STREAM/precomputed/*/*json')
+	json_list = glob.glob('/stream_web/precomputed/*/*json')
 
 	dataset_list = []
 	for json_entry in json_list:
@@ -1489,7 +1498,7 @@ def num_clicks_compute(pathname):
 
 def num_clicks_compute(dataset):
 
-	json_entry = '/STREAM/precomputed/%s/%s.json' % (dataset, dataset)
+	json_entry = '/stream_web/precomputed/%s/%s.json' % (dataset, dataset)
 	data = json.load(open(json_entry))
 
 	return 'Title: ' + data['title']
@@ -1500,7 +1509,7 @@ def num_clicks_compute(dataset):
 
 def num_clicks_compute(dataset):
 
-	json_entry = '/STREAM/precomputed/%s/%s.json' % (dataset, dataset)
+	json_entry = '/stream_web/precomputed/%s/%s.json' % (dataset, dataset)
 	data = json.load(open(json_entry))
 
 	return 'Description: ' + data['description']
@@ -1511,7 +1520,7 @@ def num_clicks_compute(dataset):
 
 def num_clicks_compute(dataset):
 
-	json_entry = '/STREAM/precomputed/%s/%s.json' % (dataset, dataset)
+	json_entry = '/stream_web/precomputed/%s/%s.json' % (dataset, dataset)
 	data = json.load(open(json_entry))
 
 	return 'Starting Node: ' + data['starting_node']
@@ -1522,7 +1531,7 @@ def num_clicks_compute(dataset):
 
 def num_clicks_compute(dataset):
 
-	json_entry = '/STREAM/precomputed/%s/%s.json' % (dataset, dataset)
+	json_entry = '/stream_web/precomputed/%s/%s.json' % (dataset, dataset)
 	data = json.load(open(json_entry))
 
 	return 'Command Used: ' + data['command_used']
@@ -1577,9 +1586,9 @@ def update_input_files(pathname, n_clicks):
 		RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
 
 		if n_clicks > 0:
-			sb.call('cp /STREAM/exampleDataset/data_guoji.tsv %s/Data_Matrix_data_guoji.tsv' % (UPLOADS_FOLDER), shell = True)
-			sb.call('cp /STREAM/exampleDataset/cell_label.tsv %s/Cell_Labels_cell_label.tsv' % (UPLOADS_FOLDER), shell = True)
-			sb.call('cp /STREAM/exampleDataset/cell_label_color.tsv %s/Cell_Label_Colors_cell_label_color.tsv' % (UPLOADS_FOLDER), shell = True)
+			sb.call('cp ./exampleDataset/data_guoji.tsv %s/Data_Matrix_data_guoji.tsv' % (UPLOADS_FOLDER), shell = True)
+			sb.call('cp ./exampleDataset/cell_label.tsv %s/Cell_Labels_cell_label.tsv' % (UPLOADS_FOLDER), shell = True)
+			sb.call('cp ./exampleDataset/cell_label_color.tsv %s/Cell_Label_Colors_cell_label_color.tsv' % (UPLOADS_FOLDER), shell = True)
 			return 'Example Data Loaded'
 
 		else:
@@ -1812,16 +1821,16 @@ def num_clicks_compute(n_clicks, pathname):
     State('loess_frac', 'value'),
     State('pca_n_PC', 'value'),
     State('pca_first_PC', 'value'),
-    State('feature_genes', 'value'),
+    # State('feature_genes', 'value'),
     State('AP_damping_factor', 'value'),
     State('EPG_n_nodes', 'value'),
     State('EPG_lambda', 'value'),
     State('EPG_mu', 'value'),
     State('EPG_trimmingradius', 'value'),
-    State('EPG_finalenergy', 'value'),
+    # State('EPG_finalenergy', 'value'),
     State('EPG_alpha', 'value'),
-    State('EPG_beta', 'value'),
-    State('disable_EPG_collapse', 'value'),
+    # State('EPG_beta', 'value'),
+    State('EPG_collapse', 'value'),
     State('EPG_collapse_mode', 'value'),
     State('EPG_collapse_par', 'value'),
     State('EPG_shift', 'value'),
@@ -1830,9 +1839,10 @@ def num_clicks_compute(n_clicks, pathname):
     State('EPG_shift_maxshift', 'value'),
     State('disable_EPG_ext', 'value'),
     State('EPG_ext_mode', 'value'),
-    State('EPG_ext_par', 'value')])
+    State('EPG_ext_par', 'value'),
+    State('disable_EPG_optimize', 'value')])
 
-def compute_trajectories(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, select,loess_frac,pca_n_PC,pca_first_PC,feature_genes,AP_damping_factor,EPG_n_nodes,EPG_lambda,EPG_mu,EPG_trimmingradius,EPG_finalenergy,EPG_alpha,EPG_beta,disable_EPG_collapse,EPG_collapse_mode,EPG_collapse_par,EPG_shift,EPG_shift_mode,EPG_shift_DR,EPG_shift_maxshift,disable_EPG_ext,EPG_ext_mode,EPG_ext_par):
+def compute_trajectories(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, select,loess_frac,pca_n_PC,pca_first_PC,AP_damping_factor,EPG_n_nodes,EPG_lambda,EPG_mu,EPG_trimmingradius,EPG_alpha,EPG_collapse,EPG_collapse_mode,EPG_collapse_par,EPG_shift,EPG_shift_mode,EPG_shift_DR,EPG_shift_maxshift,disable_EPG_ext,EPG_ext_mode,EPG_ext_par,disable_EPG_optimize):
 
 	if pathname:
 
@@ -1879,10 +1889,10 @@ def compute_trajectories(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, 
 			# 	color_plot = [cell_label_colors_dict[x] for x in cell_label_list]
 
 			arguments = {'-m':[], '-l':[], '-c':[], '-o': [RESULTS_FOLDER], '--norm':[norm], '--log2':[log2], '--atac':[atac], '--lle_components':[lle_dr], '--lle_neighbours':[lle_nbs], '--select_features':[select],
-			'--loess_frac':[loess_frac], '--pca_n_PC':[pca_n_PC], '--pca_first_PC':[pca_first_PC],'--feature_genes':[feature_genes],'--AP_damping_factor':[AP_damping_factor],'--EPG_n_nodes':[EPG_n_nodes],
-			'--EPG_lambda':[EPG_lambda],'--EPG_mu':[EPG_mu],'--EPG_trimmingradius':[EPG_trimmingradius],'--EPG_finalenergy':[EPG_finalenergy],'--EPG_alpha':[EPG_alpha],'--EPG_beta':[EPG_beta],'--disable_EPG_collapse':[disable_EPG_collapse],
+			'--loess_frac':[loess_frac], '--pca_n_PC':[pca_n_PC], '--pca_first_PC':[pca_first_PC],'--AP_damping_factor':[AP_damping_factor],'--EPG_n_nodes':[EPG_n_nodes],
+			'--EPG_lambda':[EPG_lambda],'--EPG_mu':[EPG_mu],'--EPG_trimmingradius':[EPG_trimmingradius],'--EPG_alpha':[EPG_alpha],'--EPG_collapse':[EPG_collapse],
 			'--EPG_collapse_mode':[EPG_collapse_mode],'--EPG_collapse_par':[EPG_collapse_par],'--EPG_shift':[EPG_shift],'--EPG_shift_mode':[EPG_shift_mode],'--EPG_shift_DR':[EPG_shift_DR],'--EPG_shift_maxshift':[EPG_shift_maxshift],
-			'--disable_EPG_ext':[disable_EPG_ext],'--EPG_ext_mode':[EPG_ext_mode],'--EPG_ext_par':[EPG_ext_par]}
+			'--disable_EPG_ext':[disable_EPG_ext],'--EPG_ext_mode':[EPG_ext_mode],'--EPG_ext_par':[EPG_ext_par],'--disable_EPG_optimize':[disable_EPG_optimize]}
 
 			if len(matrix) > 0:
 				arguments['-m'].append(matrix[0])
@@ -1903,10 +1913,10 @@ def compute_trajectories(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, 
 						arguments_final.append(arguments[arg][0])
 
 			# if not param_dict['compute-run']:
-			sb.call('python /STREAM/STREAM.py --for_web ' + ' '.join(map(str, arguments_final)) + ' > %s/log1.txt' % (RESULTS_FOLDER), shell = True)
+			sb.call('stream --for_web ' + ' '.join(map(str, arguments_final)) + ' > %s/log1.txt' % (RESULTS_FOLDER), shell = True)
 
 			with open(RESULTS_FOLDER + '/command_line_used.txt', 'w') as f:
-				f.write('python /STREAM/STREAM.py --for_web ' + ' '.join(map(str, arguments_final)))
+				f.write('stream --for_web ' + ' '.join(map(str, arguments_final)))
 
 			return {'display': 'block'}
 
@@ -1952,7 +1962,7 @@ def update_container(n_clicks, segmentation_container, pathname):
 
 def update_container(dataset, stream_plot_src, pathname, root):
 
-	rainbow_plot = '/STREAM/precomputed/%s/STREAM_result/%s/stream_plot.png' % (dataset, root)
+	rainbow_plot = '/stream_web/precomputed/%s/STREAM_result/%s/stream_plot.png' % (dataset, root)
 	rainbow_plot_image = base64.b64encode(open(rainbow_plot, 'rb').read())
 
 	if 'data:image/png;base64,{}'.format(rainbow_plot_image) == stream_plot_src:
@@ -2123,12 +2133,12 @@ def compute_trajectories(pathname, n_clicks):
 					next(f)
 					for line in f:
 						line = line.strip().split('\t')
-						c.append(str(line[0]))
-						x.append(float(line[1]))
-						y.append(float(line[2]))
-						z.append(float(line[3]))
+						c.append(str(line[1]))
+						x.append(float(line[2]))
+						y.append(float(line[3]))
+						z.append(float(line[4]))
 						try:
-							labels.append(cell_label_colors_dict[str(line[0])])
+							labels.append(cell_label_colors_dict[str(line[1])])
 						except:
 							pass
 
@@ -2249,10 +2259,10 @@ def compute_trajectories(dataset):
 
 	try:
 
-		cell_label = glob.glob('/STREAM/precomputed/%s/cell_label.tsv.gz*' % dataset)
-		cell_label_colors = glob.glob('/STREAM/precomputed/%s/cell_label_color.tsv.gz*' % dataset)
+		cell_label = glob.glob('/stream_web/precomputed/%s/cell_label.tsv.gz*' % dataset)
+		cell_label_colors = glob.glob('/stream_web/precomputed/%s/cell_label_color.tsv.gz*' % dataset)
 
-		edges = '/STREAM/precomputed/%s/STREAM_result/edges.tsv' % dataset
+		edges = '/stream_web/precomputed/%s/STREAM_result/edges.tsv' % dataset
 		edge_list = []
 
 		with open(edges, 'r') as f:
@@ -2291,9 +2301,9 @@ def compute_trajectories(dataset):
 		elif len(cell_label_list) > 0 and len(cell_label_colors_dict) == 0:
 			color_plot = 0.5
 
-		cell_coords = '/STREAM/precomputed/%s/STREAM_result/coord_cells.csv' % dataset
-		coord_states = '/STREAM/precomputed/%s/STREAM_result/coord_states.csv' % dataset
-		path_coords = glob.glob('/STREAM/precomputed/%s/STREAM_result/coord_curve*csv' % dataset)
+		cell_coords = '/stream_web/precomputed/%s/STREAM_result/coord_cells.csv' % dataset
+		coord_states = '/stream_web/precomputed/%s/STREAM_result/coord_states.csv' % dataset
+		path_coords = glob.glob('/stream_web/precomputed/%s/STREAM_result/coord_curve*csv' % dataset)
 
 		path_coords_reordered = []
 		for e in edge_list:
@@ -2342,12 +2352,12 @@ def compute_trajectories(dataset):
 			next(f)
 			for line in f:
 				line = line.strip().split('\t')
-				c.append(str(line[0]))
-				x.append(float(line[1]))
-				y.append(float(line[2]))
-				z.append(float(line[3]))
+				c.append(str(line[1]))
+				x.append(float(line[2]))
+				y.append(float(line[3]))
+				z.append(float(line[4]))
 				try:
-					labels.append(cell_label_colors_dict[str(line[0])])
+					labels.append(cell_label_colors_dict[str(line[1])])
 				except:
 					pass
 
@@ -2465,12 +2475,13 @@ def compute_trajectories(pathname, threed_scatter, n_clicks):
 		RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
 
 		if os.path.exists(RESULTS_FOLDER + '/log1.txt'):
-
+            # print('---------------------- LOG1 FILE EXISTS!!!!!!!!!! ----------------------')
 			f = open(RESULTS_FOLDER + '/log1.txt', 'r')
 			f_data = f.readlines()
 			f.close()
 
 			if 'Finished computation...\n' in f_data:
+                # print('---------------------- FINISHED COMPUTATION EXISTS IN LOG1!!!!!! ----------------------')
 
 				matrix = glob.glob(UPLOADS_FOLDER + '/Data_Matrix*')
 				cell_label = glob.glob(UPLOADS_FOLDER + '/Cell_Labels*')
@@ -2508,7 +2519,7 @@ def compute_trajectories(pathname, threed_scatter, n_clicks):
 					color_plot = 0.5
 
 				cell_coords = RESULTS_FOLDER + '/flat_tree_coord_cells.csv'
-				nodes = RESULTS_FOLDER + '/nodes.tsv'
+				nodes = RESULTS_FOLDER + '/nodes.csv'
 				edges = RESULTS_FOLDER + '/edges.tsv'
 
 				node_list = {}
@@ -2567,11 +2578,11 @@ def compute_trajectories(pathname, threed_scatter, n_clicks):
 					next(f)
 					for line in f:
 						line = line.strip().split('\t')
-						c.append(str(line[0]))
-						x.append(float(line[1]))
-						y.append(float(line[2]))
+						c.append(str(line[1]))
+						x.append(float(line[2]))
+						y.append(float(line[3]))
 						try:
-							labels.append(cell_label_colors_dict[str(line[0])])
+							labels.append(cell_label_colors_dict[str(line[1])])
 						except:
 							pass
 
@@ -2633,8 +2644,8 @@ def compute_trajectories(dataset):
 
 	try:
 
-		cell_label = glob.glob('/STREAM/precomputed/%s/cell_label.tsv.gz*' % dataset)
-		cell_label_colors = glob.glob('/STREAM/precomputed/%s/cell_label_color.tsv.gz*' % dataset)
+		cell_label = glob.glob('/stream_web/precomputed/%s/cell_label.tsv.gz*' % dataset)
+		cell_label_colors = glob.glob('/stream_web/precomputed/%s/cell_label_color.tsv.gz*' % dataset)
 
 		cell_label_list = []
 		if len(cell_label) > 0:
@@ -2667,9 +2678,9 @@ def compute_trajectories(dataset):
 		elif len(cell_label_list) > 0 and len(cell_label_colors_dict) == 0:
 			color_plot = 0.5
 
-		cell_coords = '/STREAM/precomputed/%s/STREAM_result/flat_tree_coord_cells.csv' % dataset
-		nodes = '/STREAM/precomputed/%s/STREAM_result/nodes.tsv' % dataset
-		edges = '/STREAM/precomputed/%s/STREAM_result/edges.tsv' % dataset
+		cell_coords = '/stream_web/precomputed/%s/STREAM_result/flat_tree_coord_cells.csv' % dataset
+		nodes = '/stream_web/precomputed/%s/STREAM_result/nodes.tsv' % dataset
+		edges = '/stream_web/precomputed/%s/STREAM_result/edges.tsv' % dataset
 
 		node_list = {}
 		edge_list = []
@@ -2726,11 +2737,11 @@ def compute_trajectories(dataset):
 			next(f)
 			for line in f:
 				line = line.strip().split('\t')
-				c.append(str(line[0]))
-				x.append(float(line[1]))
-				y.append(float(line[2]))
+				c.append(str(line[1]))
+				x.append(float(line[2]))
+				y.append(float(line[3]))
 				try:
-					labels.append(cell_label_colors_dict[str(line[0])])
+					labels.append(cell_label_colors_dict[str(line[1])])
 				except:
 					pass
 
@@ -2806,7 +2817,7 @@ def num_clicks_compute(fig_update, pathname):
 
 def num_clicks_compute(dataset):
 
-	node_list_tmp = glob.glob('/STREAM/precomputed/%s/STREAM_result/S*' % dataset)
+	node_list_tmp = glob.glob('/stream_web/precomputed/%s/STREAM_result/S*' % dataset)
 
 	node_list = [x.split('/')[-1] for x in node_list_tmp if len(x.split('/')[-1]) == 2]
 
@@ -2818,7 +2829,7 @@ def num_clicks_compute(dataset):
 
 def num_clicks_compute(dataset):
 
-	json_entry = '/STREAM/precomputed/%s/%s.json' % (dataset, dataset)
+	json_entry = '/stream_web/precomputed/%s/%s.json' % (dataset, dataset)
 	data = json.load(open(json_entry))
 
 	return data['starting_node']
@@ -2836,6 +2847,7 @@ def num_clicks_compute(root, figure, pathname):
 
 	cell_coords = RESULTS_FOLDER + '/%s/subway_coord_cells.csv' % root
 	path_coords = glob.glob(RESULTS_FOLDER + '/%s/subway_coord_line*csv' % root)
+	# print(cell_coords)
 
 	cell_label = glob.glob(UPLOADS_FOLDER + '/Cell_Labels*')
 	cell_label_colors = glob.glob(UPLOADS_FOLDER + '/Cell_Label_Colors*')
@@ -2937,11 +2949,11 @@ def num_clicks_compute(root, figure, pathname):
 			next(f)
 			for line in f:
 				line = line.strip().split('\t')
-				c.append(str(line[0]))
-				x.append(float(line[1]))
-				y.append(float(line[2]))
+				c.append(str(line[1]))
+				x.append(float(line[2]))
+				y.append(float(line[3]))
 				try:
-					labels.append(cell_label_colors_dict[str(line[0])])
+					labels.append(cell_label_colors_dict[str(line[1])])
 				except:
 					pass
 	except:
@@ -3005,11 +3017,11 @@ def num_clicks_compute(root, dataset):
 
 	try:
 
-		cell_coords = '/STREAM/precomputed/%s/STREAM_result/%s/subway_coord_cells.csv' % (dataset, root)
-		path_coords = glob.glob('/STREAM/precomputed/%s/STREAM_result/%s/subway_coord_line*csv' % (dataset, root))
+		cell_coords = '/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_cells.csv' % (dataset, root)
+		path_coords = glob.glob('/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_line*csv' % (dataset, root))
 
-		cell_label = glob.glob('/STREAM/precomputed/%s/cell_label.tsv.gz' % dataset)
-		cell_label_colors = glob.glob('/STREAM/precomputed/%s/cell_label_color.tsv.gz' % dataset)
+		cell_label = glob.glob('/stream_web/precomputed/%s/cell_label.tsv.gz' % dataset)
+		cell_label_colors = glob.glob('/stream_web/precomputed/%s/cell_label_color.tsv.gz' % dataset)
 
 		cell_label_list = []
 		if len(cell_label) > 0:
@@ -3045,7 +3057,7 @@ def num_clicks_compute(root, dataset):
 		elif len(cell_label_list) > 0 and len(cell_label_colors_dict) == 0:
 			color_plot = 0.5
 
-		edges = '/STREAM/precomputed/%s/STREAM_result/edges.tsv' % dataset
+		edges = '/stream_web/precomputed/%s/STREAM_result/edges.tsv' % dataset
 		edge_list = []
 
 		with open(edges, 'r') as f:
@@ -3110,11 +3122,11 @@ def num_clicks_compute(root, dataset):
 				next(f)
 				for line in f:
 					line = line.strip().split('\t')
-					c.append(str(line[0]))
-					x.append(float(line[1]))
-					y.append(float(line[2]))
+					c.append(str(line[1]))
+					x.append(float(line[2]))
+					y.append(float(line[3]))
 					try:
-						labels.append(cell_label_colors_dict[str(line[0])])
+						labels.append(cell_label_colors_dict[str(line[1])])
 					except:
 						pass
 		except:
@@ -3187,15 +3199,16 @@ def num_clicks_compute(root, figure, pathname):
 	UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
 	RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
 
-	try:
+	# try:
+	rainbow_plot = RESULTS_FOLDER + '/%s/stream_plot.png' % root
+	# rainbow_plot_image = base64.b64encode(open(rainbow_plot, 'rb').read())
+	rainbow_plot_image = base64.b64encode(open(rainbow_plot, 'rb').read()).decode('ascii')
 
-		rainbow_plot = RESULTS_FOLDER + '/%s/stream_plot.png' % root
-		rainbow_plot_image = base64.b64encode(open(rainbow_plot, 'rb').read())
+	# print('----------------- TRYING TO DISPLAY STREAM PLOT -----------------------')
+	return 'data:image/png;base64,{}'.format(rainbow_plot_image)
 
-		return 'data:image/png;base64,{}'.format(rainbow_plot_image)
-
-	except:
-		pass
+	# except:
+	# 	pass
 
 @app2.callback(
     Output('rainbow-plot2', 'src'),
@@ -3206,7 +3219,7 @@ def num_clicks_compute(root, dataset):
 
 	try:
 
-		rainbow_plot = '/STREAM/precomputed/%s/STREAM_result/%s/stream_plot.png' % (dataset, root)
+		rainbow_plot = '/stream_web/precomputed/%s/STREAM_result/%s/stream_plot.png' % (dataset, root)
 		rainbow_plot_image = base64.b64encode(open(rainbow_plot, 'rb').read())
 
 		return 'data:image/png;base64,{}'.format(rainbow_plot_image)
@@ -3283,7 +3296,7 @@ def num_clicks_compute(fig_update, pathname):
 
 def num_clicks_compute(dataset):
 
-	gene_list_tmp = glob.glob('/STREAM/precomputed/%s/STREAM_result/S0/stream_plot_*png' % dataset)
+	gene_list_tmp = glob.glob('/stream_web/precomputed/%s/STREAM_result/S0/stream_plot_*png' % dataset)
 
 	gene_list = [x.split('_')[-1].replace('.png', '') for x in gene_list_tmp]
 
@@ -3425,16 +3438,16 @@ def num_clicks_compute(n_clicks, pathname):
     State('loess_frac', 'value'),
     State('pca_n_PC', 'value'),
     State('pca_first_PC', 'value'),
-    State('feature_genes', 'value'),
+    # State('feature_genes', 'value'),
     State('AP_damping_factor', 'value'),
     State('EPG_n_nodes', 'value'),
     State('EPG_lambda', 'value'),
     State('EPG_mu', 'value'),
     State('EPG_trimmingradius', 'value'),
-    State('EPG_finalenergy', 'value'),
+    # State('EPG_finalenergy', 'value'),
     State('EPG_alpha', 'value'),
-    State('EPG_beta', 'value'),
-    State('disable_EPG_collapse', 'value'),
+    # State('EPG_beta', 'value'),
+    State('EPG_collapse', 'value'),
     State('EPG_collapse_mode', 'value'),
     State('EPG_collapse_par', 'value'),
     State('EPG_shift', 'value'),
@@ -3443,9 +3456,10 @@ def num_clicks_compute(n_clicks, pathname):
     State('EPG_shift_maxshift', 'value'),
     State('disable_EPG_ext', 'value'),
     State('EPG_ext_mode', 'value'),
-    State('EPG_ext_par', 'value')])
+    State('EPG_ext_par', 'value'),
+    State('disable_EPG_optimize', 'value')])
 
-def compute_single_gene(n_clicks, pathname, root, gene, norm, log2, atac, lle_dr, lle_nbs, select, loess_frac,pca_n_PC,pca_first_PC,feature_genes,AP_damping_factor,EPG_n_nodes,EPG_lambda,EPG_mu,EPG_trimmingradius,EPG_finalenergy,EPG_alpha,EPG_beta,disable_EPG_collapse,EPG_collapse_mode,EPG_collapse_par,EPG_shift,EPG_shift_mode,EPG_shift_DR,EPG_shift_maxshift,disable_EPG_ext,EPG_ext_mode,EPG_ext_par):
+def compute_single_gene(n_clicks, pathname, root, gene, norm, log2, atac, lle_dr, lle_nbs, select, loess_frac,pca_n_PC,pca_first_PC,AP_damping_factor,EPG_n_nodes,EPG_lambda,EPG_mu,EPG_trimmingradius,EPG_alpha,EPG_collapse,EPG_collapse_mode,EPG_collapse_par,EPG_shift,EPG_shift_mode,EPG_shift_DR,EPG_shift_maxshift,disable_EPG_ext,EPG_ext_mode,EPG_ext_par,disable_EPG_optimize):
 
 	if pathname:
 
@@ -3463,10 +3477,10 @@ def compute_single_gene(n_clicks, pathname, root, gene, norm, log2, atac, lle_dr
 			cell_label_colors = glob.glob(UPLOADS_FOLDER + '/Cell_Label_Colors*')
 
 			arguments = {'-m':[], '-l':[], '-c':[], '-o': [RESULTS_FOLDER], '--norm':[norm], '--log2':[log2], '--atac':[atac], '--lle_components':[lle_dr], '--lle_neighbours':[lle_nbs], '--select_features':[select],
-			'--loess_frac':[loess_frac], '--pca_n_PC':[pca_n_PC], '--pca_first_PC':[pca_first_PC],'--feature_genes':[feature_genes],'--AP_damping_factor':[AP_damping_factor],'--EPG_n_nodes':[EPG_n_nodes],
-			'--EPG_lambda':[EPG_lambda],'--EPG_mu':[EPG_mu],'--EPG_trimmingradius':[EPG_trimmingradius],'--EPG_finalenergy':[EPG_finalenergy],'--EPG_alpha':[EPG_alpha],'--EPG_beta':[EPG_beta],'--disable_EPG_collapse':[disable_EPG_collapse],
+			'--loess_frac':[loess_frac], '--pca_n_PC':[pca_n_PC], '--pca_first_PC':[pca_first_PC],'--AP_damping_factor':[AP_damping_factor],'--EPG_n_nodes':[EPG_n_nodes],
+			'--EPG_lambda':[EPG_lambda],'--EPG_mu':[EPG_mu],'--EPG_trimmingradius':[EPG_trimmingradius],'--EPG_alpha':[EPG_alpha],'--EPG_collapse':[EPG_collapse],
 			'--EPG_collapse_mode':[EPG_collapse_mode],'--EPG_collapse_par':[EPG_collapse_par],'--EPG_shift':[EPG_shift],'--EPG_shift_mode':[EPG_shift_mode],'--EPG_shift_DR':[EPG_shift_DR],'--EPG_shift_maxshift':[EPG_shift_maxshift],
-			'--disable_EPG_ext':[disable_EPG_ext],'--EPG_ext_mode':[EPG_ext_mode],'--EPG_ext_par':[EPG_ext_par]}
+			'--disable_EPG_ext':[disable_EPG_ext],'--EPG_ext_mode':[EPG_ext_mode],'--EPG_ext_par':[EPG_ext_par],'--disable_EPG_optimize':[disable_EPG_optimize]}
 
 			if len(matrix) > 0:
 				arguments['-m'].append(matrix[0])
@@ -3487,7 +3501,8 @@ def compute_single_gene(n_clicks, pathname, root, gene, norm, log2, atac, lle_dr
 						arguments_final.append(arguments[arg][0])
 
 			if param_dict['compute-run']:
-				sb.call('python /STREAM/STREAM.py --for_web -p -g %s ' % gene + ' '.join(map(str, arguments_final)) + ' > %s/log2.txt' % (RESULTS_FOLDER), shell = True)
+				# print('------------------ TRYING TO RUN COMPUTE SINGLE GENE!!!!!!!!!!!!!!!! ------------------')
+				sb.call('stream --for_web -p -g %s ' % gene + ' '.join(map(str, arguments_final)) + ' > %s/log2.txt' % (RESULTS_FOLDER), shell = True)
 
 			return {'display': 'block'}
 
@@ -3715,14 +3730,14 @@ def compute_trajectories(dataset, gene, root):
 
 	traces = []
 
-	cell_coords = '/STREAM/precomputed/%s/STREAM_result/%s/subway_coord_cells.csv' % (dataset, root)
-	path_coords = glob.glob('/STREAM/precomputed/%s/STREAM_result/%s/subway_coord_line*csv' % (dataset, root))
-	gene_coords = '/STREAM/precomputed/%s/STREAM_result/%s/subway_coord_%s.csv' % (dataset, root, gene)
+	cell_coords = '/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_cells.csv' % (dataset, root)
+	path_coords = glob.glob('/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_line*csv' % (dataset, root))
+	gene_coords = '/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_%s.csv' % (dataset, root, gene)
 
-	cell_label = '/STREAM/precomputed/%s/cell_label.tsv.gz' % dataset
-	cell_label_colors = '/STREAM/precomputed/%s/cell_label_color.tsv.gz' % dataset
+	cell_label = '/stream_web/precomputed/%s/cell_label.tsv.gz' % dataset
+	cell_label_colors = '/stream_web/precomputed/%s/cell_label_color.tsv.gz' % dataset
 
-	edges = '/STREAM/precomputed/%s/STREAM_result/edges.tsv' % dataset
+	edges = '/stream_web/precomputed/%s/STREAM_result/edges.tsv' % dataset
 	edge_list = []
 
 	with open(edges, 'r') as f:
@@ -3868,7 +3883,7 @@ def num_clicks_compute(dataset, gene, root):
 
 	try:
 
-		discovery_plot = '/STREAM/precomputed/%s/STREAM_result/%s/stream_plot_%s.png' % (dataset, root, gene)
+		discovery_plot = '/stream_web/precomputed/%s/STREAM_result/%s/stream_plot_%s.png' % (dataset, root, gene)
 		discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read())
 		return 'data:image/png;base64,{}'.format(discovery_plot_image)
 
@@ -3945,7 +3960,7 @@ def num_clicks_compute(fig_update, pathname):
 
 def num_clicks_compute(dataset):
 
-	gene_list_tmp = glob.glob('/STREAM/precomputed/%s/STREAM_result/S0/stream_plot_*png' % dataset)
+	gene_list_tmp = glob.glob('/stream_web/precomputed/%s/STREAM_result/S0/stream_plot_*png' % dataset)
 
 	gene_list = [x.split('_')[-1].replace('.png', '') for x in gene_list_tmp]
 
@@ -4045,16 +4060,16 @@ def num_clicks_compute(n_clicks, pathname):
     State('loess_frac', 'value'),
     State('pca_n_PC', 'value'),
     State('pca_first_PC', 'value'),
-    State('feature_genes', 'value'),
+    # State('feature_genes', 'value'),
     State('AP_damping_factor', 'value'),
     State('EPG_n_nodes', 'value'),
     State('EPG_lambda', 'value'),
     State('EPG_mu', 'value'),
     State('EPG_trimmingradius', 'value'),
-    State('EPG_finalenergy', 'value'),
+    # State('EPG_finalenergy', 'value'),
     State('EPG_alpha', 'value'),
-    State('EPG_beta', 'value'),
-    State('disable_EPG_collapse', 'value'),
+    # State('EPG_beta', 'value'),
+    State('EPG_collapse', 'value'),
     State('EPG_collapse_mode', 'value'),
     State('EPG_collapse_par', 'value'),
     State('EPG_shift', 'value'),
@@ -4064,10 +4079,11 @@ def num_clicks_compute(n_clicks, pathname):
     State('disable_EPG_ext', 'value'),
     State('EPG_ext_mode', 'value'),
     State('EPG_ext_par', 'value'),
+    State('disable_EPG_optimize', 'value'),
     State('root', 'value'),
     State('discovery-gene', 'value')])
 
-def compute_discovery(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, select,loess_frac,pca_n_PC,pca_first_PC,feature_genes,AP_damping_factor,EPG_n_nodes,EPG_lambda,EPG_mu,EPG_trimmingradius,EPG_finalenergy,EPG_alpha,EPG_beta,disable_EPG_collapse,EPG_collapse_mode,EPG_collapse_par,EPG_shift,EPG_shift_mode,EPG_shift_DR,EPG_shift_maxshift,disable_EPG_ext,EPG_ext_mode,EPG_ext_par,root,gene):
+def compute_discovery(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, select,loess_frac,pca_n_PC,pca_first_PC,AP_damping_factor,EPG_n_nodes,EPG_lambda,EPG_mu,EPG_trimmingradius,EPG_alpha,EPG_collapse,EPG_collapse_mode,EPG_collapse_par,EPG_shift,EPG_shift_mode,EPG_shift_DR,EPG_shift_maxshift,disable_EPG_ext,EPG_ext_mode,EPG_ext_par,disable_EPG_optimize,root,gene):
 
 	if pathname:
 
@@ -4085,10 +4101,10 @@ def compute_discovery(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, sel
 			cell_label_colors = glob.glob(UPLOADS_FOLDER + '/Cell_Label_Colors*')
 
 			arguments = {'-m':[], '-l':[], '-c':[], '-o': [RESULTS_FOLDER], '--norm':[norm], '--log2':[log2], '--atac':[atac], '--lle_components':[lle_dr], '--lle_neighbours':[lle_nbs], '--select_features':[select],
-			'--loess_frac':[loess_frac], '--pca_n_PC':[pca_n_PC], '--pca_first_PC':[pca_first_PC],'--feature_genes':[feature_genes],'--AP_damping_factor':[AP_damping_factor],'--EPG_n_nodes':[EPG_n_nodes],
-			'--EPG_lambda':[EPG_lambda],'--EPG_mu':[EPG_mu],'--EPG_trimmingradius':[EPG_trimmingradius],'--EPG_finalenergy':[EPG_finalenergy],'--EPG_alpha':[EPG_alpha],'--EPG_beta':[EPG_beta],'--disable_EPG_collapse':[disable_EPG_collapse],
+			'--loess_frac':[loess_frac], '--pca_n_PC':[pca_n_PC], '--pca_first_PC':[pca_first_PC],'--AP_damping_factor':[AP_damping_factor],'--EPG_n_nodes':[EPG_n_nodes],
+			'--EPG_lambda':[EPG_lambda],'--EPG_mu':[EPG_mu],'--EPG_trimmingradius':[EPG_trimmingradius],'--EPG_alpha':[EPG_alpha],'--EPG_collapse':[EPG_collapse],
 			'--EPG_collapse_mode':[EPG_collapse_mode],'--EPG_collapse_par':[EPG_collapse_par],'--EPG_shift':[EPG_shift],'--EPG_shift_mode':[EPG_shift_mode],'--EPG_shift_DR':[EPG_shift_DR],'--EPG_shift_maxshift':[EPG_shift_maxshift],
-			'--disable_EPG_ext':[disable_EPG_ext],'--EPG_ext_mode':[EPG_ext_mode],'--EPG_ext_par':[EPG_ext_par]}
+			'--disable_EPG_ext':[disable_EPG_ext],'--EPG_ext_mode':[EPG_ext_mode],'--EPG_ext_par':[EPG_ext_par],'--disable_EPG_optimize':[disable_EPG_optimize]}
 
 			if len(matrix) > 0:
 				arguments['-m'].append(matrix[0])
@@ -4109,7 +4125,7 @@ def compute_discovery(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, sel
 						arguments_final.append(arguments[arg][0])
 
 			if not param_dict['discovery-run']:
-				sb.call('python /STREAM/STREAM.py --for_web -d ' + ' '.join(map(str, arguments_final)) + ' > %s/log3.txt' % (RESULTS_FOLDER), shell = True)
+				sb.call('stream --for_web --DE ' + ' '.join(map(str, arguments_final)) + ' > %s/log3.txt' % (RESULTS_FOLDER), shell = True)
 
 			return {'display': 'block'}
 
@@ -4343,14 +4359,14 @@ def compute_trajectories(dataset, root, gene):
 
 	traces = []
 
-	cell_coords = '/STREAM/precomputed/%s/STREAM_result/%s/subway_coord_cells.csv' % (dataset, root)
-	path_coords = glob.glob('/STREAM/precomputed/%s/STREAM_result/%s/subway_coord_line*csv' % (dataset, root))
-	gene_coords = '/STREAM/precomputed/%s/STREAM_result/%s/subway_coord_%s.csv' % (dataset, root, gene)
+	cell_coords = '/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_cells.csv' % (dataset, root)
+	path_coords = glob.glob('/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_line*csv' % (dataset, root))
+	gene_coords = '/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_%s.csv' % (dataset, root, gene)
 
-	cell_label = '/STREAM/precomputed/%s/cell_label.tsv.gz' % dataset
-	cell_label_colors = '/STREAM/precomputed/%s/cell_label_color.tsv.gz' % dataset
+	cell_label = '/stream_web/precomputed/%s/cell_label.tsv.gz' % dataset
+	cell_label_colors = '/stream_web/precomputed/%s/cell_label_color.tsv.gz' % dataset
 
-	edges = '/STREAM/precomputed/%s/STREAM_result/edges.tsv' % dataset
+	edges = '/stream_web/precomputed/%s/STREAM_result/edges.tsv' % dataset
 	edge_list = []
 
 	with open(edges, 'r') as f:
@@ -4472,7 +4488,7 @@ def num_clicks_compute(root, gene, pathname):
 			try:
 
 				discovery_plot = RESULTS_FOLDER + '/%s/stream_plot_%s.png' % (root, gene)
-				discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read())
+				discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read()).decode('ascii')
 
 				return 'data:image/png;base64,{}'.format(discovery_plot_image)
 
@@ -4489,7 +4505,7 @@ def num_clicks_compute(root, gene, dataset):
 
 	try:
 
-		discovery_plot = '/STREAM/precomputed/%s/STREAM_result/%s/stream_plot_%s.png' % (dataset, root, gene)
+		discovery_plot = '/stream_web/precomputed/%s/STREAM_result/%s/stream_plot_%s.png' % (dataset, root, gene)
 		discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read())
 
 		return 'data:image/png;base64,{}'.format(discovery_plot_image)
@@ -4510,9 +4526,9 @@ def num_clicks_compute(fig_update, pathname):
 		RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
 
 		combined_branches = []
-		find_tables = glob.glob(RESULTS_FOLDER + '/DE_Genes/*.tsv')
+		find_tables = glob.glob(RESULTS_FOLDER + '/de_genes/*.tsv')
 		for table in find_tables:
-			branch1 = table.split(' and ')[0].split('genes_')[1]
+			branch1 = table.split(' and ')[0].split('_')[-2] + '_' + table.split(' and ')[0].split('_')[-1]
 			branch2 = table.split(' and ')[1].strip('.tsv')
 
 			combined_branch = branch1 + ' and ' + branch2
@@ -4529,7 +4545,7 @@ def num_clicks_compute(fig_update, pathname):
 def num_clicks_compute(dataset):
 
 	combined_branches = []
-	find_tables = glob.glob('/STREAM/precomputed/%s/STREAM_result/DE_Genes/*.tsv' % dataset)
+	find_tables = glob.glob('/stream_web/precomputed/%s/STREAM_result/DE_Genes/*.tsv' % dataset)
 	for table in find_tables:
 		branch1 = table.split(' and ')[0].split('genes_')[1]
 		branch2 = table.split(' and ')[1].strip('.tsv')
@@ -4597,11 +4613,11 @@ def update_table(slider, branches, direction, figure, pathname):
 		branch2 = branches.split(' and ')[1]
 
 		if direction == branch1:
-			direction_classify = '_up_'
+			direction_classify = '_greater_'
 		elif direction == branch2:
-			direction_classify = '_down_'
+			direction_classify = '_less_'
 
-		find_table = glob.glob(RESULTS_FOLDER + '/DE_Genes/*.tsv')
+		find_table = glob.glob(RESULTS_FOLDER + '/de_genes/*.tsv')
 		for table in find_table:
 			if (branch1 in table) and (branch2 in table) and (direction_classify in table):
 				use_this_table = table
@@ -4612,16 +4628,16 @@ def update_table(slider, branches, direction, figure, pathname):
 	if len(use_this_table) > 0:
 
 		df = pd.read_table(use_this_table).fillna('')
-		df.columns = ['gene','z_score','U','diff','mean_up','mean_down','pval','qval']
+		df.columns = ['gene','z_score','U','logfc','mean_up','mean_down','pval','qval']
 
 		mapper =  {'z_score': '{0:.2f}',
-		           'diff': '{0:.2f}',
+		           'logfc': '{0:.2f}',
 		           'pval': '{:.2g}',
 		           'qval': '{:.2g}'}
 		for key, value in mapper.items():
 			df[key] = df[key].apply(value.format)
 
-		dff = df.head(n = slider)[['gene', 'z_score', 'diff','pval', 'qval']] # update with your own logic
+		dff = df.head(n = slider)[['gene', 'z_score', 'logfc','pval', 'qval']] # update with your own logic
 
 		return generate_table(dff)
 
@@ -4646,7 +4662,7 @@ def update_table(slider, branches, direction, dataset):
 		elif direction == branch2:
 			direction_classify = '_down_'
 
-		find_table = glob.glob('/STREAM/precomputed/%s/STREAM_result/DE_Genes/*.tsv' % dataset)
+		find_table = glob.glob('/stream_web/precomputed/%s/STREAM_result/DE_Genes/*.tsv' % dataset)
 		for table in find_table:
 			if (branch1 in table) and (branch2 in table) and (direction_classify in table):
 				use_this_table = table
@@ -4739,7 +4755,7 @@ def num_clicks_compute(fig_update, pathname):
 
 def num_clicks_compute(dataset):
 
-	gene_list_tmp = glob.glob('/STREAM/precomputed/%s/STREAM_result/S0/stream_plot_*png' % dataset)
+	gene_list_tmp = glob.glob('/stream_web/precomputed/%s/STREAM_result/S0/stream_plot_*png' % dataset)
 
 	gene_list = [x.split('_')[-1].replace('.png', '') for x in gene_list_tmp]
 
@@ -4839,16 +4855,16 @@ def num_clicks_compute(n_clicks, pathname):
     State('loess_frac', 'value'),
     State('pca_n_PC', 'value'),
     State('pca_first_PC', 'value'),
-    State('feature_genes', 'value'),
+    # State('feature_genes', 'value'),
     State('AP_damping_factor', 'value'),
     State('EPG_n_nodes', 'value'),
     State('EPG_lambda', 'value'),
     State('EPG_mu', 'value'),
     State('EPG_trimmingradius', 'value'),
-    State('EPG_finalenergy', 'value'),
+    # State('EPG_finalenergy', 'value'),
     State('EPG_alpha', 'value'),
-    State('EPG_beta', 'value'),
-    State('disable_EPG_collapse', 'value'),
+    # State('EPG_beta', 'value'),
+    State('EPG_collapse', 'value'),
     State('EPG_collapse_mode', 'value'),
     State('EPG_collapse_par', 'value'),
     State('EPG_shift', 'value'),
@@ -4858,10 +4874,11 @@ def num_clicks_compute(n_clicks, pathname):
     State('disable_EPG_ext', 'value'),
     State('EPG_ext_mode', 'value'),
     State('EPG_ext_par', 'value'),
+    State('disable_EPG_optimize', 'value'),
     State('root', 'value'),
     State('correlation-gene', 'value')])
 
-def compute_correlation(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, select,loess_frac,pca_n_PC,pca_first_PC,feature_genes,AP_damping_factor,EPG_n_nodes,EPG_lambda,EPG_mu,EPG_trimmingradius,EPG_finalenergy,EPG_alpha,EPG_beta,disable_EPG_collapse,EPG_collapse_mode,EPG_collapse_par,EPG_shift,EPG_shift_mode,EPG_shift_DR,EPG_shift_maxshift,disable_EPG_ext,EPG_ext_mode,EPG_ext_par,root,gene):
+def compute_correlation(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, select,loess_frac,pca_n_PC,pca_first_PC,AP_damping_factor,EPG_n_nodes,EPG_lambda,EPG_mu,EPG_trimmingradius,EPG_alpha,EPG_collapse,EPG_collapse_mode,EPG_collapse_par,EPG_shift,EPG_shift_mode,EPG_shift_DR,EPG_shift_maxshift,disable_EPG_ext,EPG_ext_mode,EPG_ext_par,disable_EPG_optimize,root,gene):
 
 	if pathname:
 
@@ -4879,10 +4896,10 @@ def compute_correlation(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, s
 			cell_label_colors = glob.glob(UPLOADS_FOLDER + '/Cell_Label_Colors*')
 
 			arguments = {'-m':[], '-l':[], '-c':[], '-o': [RESULTS_FOLDER], '--norm':[norm], '--log2':[log2], '--atac':[atac], '--lle_components':[lle_dr], '--lle_neighbours':[lle_nbs], '--select_features':[select],
-			'--loess_frac':[loess_frac], '--pca_n_PC':[pca_n_PC], '--pca_first_PC':[pca_first_PC],'--feature_genes':[feature_genes],'--AP_damping_factor':[AP_damping_factor],'--EPG_n_nodes':[EPG_n_nodes],
-			'--EPG_lambda':[EPG_lambda],'--EPG_mu':[EPG_mu],'--EPG_trimmingradius':[EPG_trimmingradius],'--EPG_finalenergy':[EPG_finalenergy],'--EPG_alpha':[EPG_alpha],'--EPG_beta':[EPG_beta],'--disable_EPG_collapse':[disable_EPG_collapse],
+			'--loess_frac':[loess_frac], '--pca_n_PC':[pca_n_PC], '--pca_first_PC':[pca_first_PC],'--AP_damping_factor':[AP_damping_factor],'--EPG_n_nodes':[EPG_n_nodes],
+			'--EPG_lambda':[EPG_lambda],'--EPG_mu':[EPG_mu],'--EPG_trimmingradius':[EPG_trimmingradius],'--EPG_alpha':[EPG_alpha],'--EPG_collapse':[EPG_collapse],
 			'--EPG_collapse_mode':[EPG_collapse_mode],'--EPG_collapse_par':[EPG_collapse_par],'--EPG_shift':[EPG_shift],'--EPG_shift_mode':[EPG_shift_mode],'--EPG_shift_DR':[EPG_shift_DR],'--EPG_shift_maxshift':[EPG_shift_maxshift],
-			'--disable_EPG_ext':[disable_EPG_ext],'--EPG_ext_mode':[EPG_ext_mode],'--EPG_ext_par':[EPG_ext_par]}
+			'--disable_EPG_ext':[disable_EPG_ext],'--EPG_ext_mode':[EPG_ext_mode],'--EPG_ext_par':[EPG_ext_par],'--disable_EPG_optimize':[disable_EPG_optimize]}
 
 			if len(matrix) > 0:
 				arguments['-m'].append(matrix[0])
@@ -4903,7 +4920,7 @@ def compute_correlation(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, s
 						arguments_final.append(arguments[arg][0])
 
 			if not param_dict['correlation-run']:
-				sb.call('python /STREAM/STREAM.py --for_web -t ' + ' '.join(map(str, arguments_final)) + ' > %s/log4.txt' % (RESULTS_FOLDER), shell = True)
+				sb.call('stream --for_web --TG ' + ' '.join(map(str, arguments_final)) + ' > %s/log4.txt' % (RESULTS_FOLDER), shell = True)
 
 			return {'display': 'block'}
 
@@ -5137,14 +5154,14 @@ def compute_trajectories(dataset, root, gene):
 
 	traces = []
 
-	cell_coords = '/STREAM/precomputed/%s/STREAM_result/%s/subway_coord_cells.csv' % (dataset, root)
-	path_coords = glob.glob('/STREAM/precomputed/%s/STREAM_result/%s/subway_coord_line*csv' % (dataset, root))
-	gene_coords = '/STREAM/precomputed/%s/STREAM_result/%s/subway_coord_%s.csv' % (dataset, root, gene)
+	cell_coords = '/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_cells.csv' % (dataset, root)
+	path_coords = glob.glob('/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_line*csv' % (dataset, root))
+	gene_coords = '/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_%s.csv' % (dataset, root, gene)
 
-	cell_label = '/STREAM/precomputed/%s/cell_label.tsv.gz' % dataset
-	cell_label_colors = '/STREAM/precomputed/%s/cell_label_color.tsv.gz' % dataset
+	cell_label = '/stream_web/precomputed/%s/cell_label.tsv.gz' % dataset
+	cell_label_colors = '/stream_web/precomputed/%s/cell_label_color.tsv.gz' % dataset
 
-	edges = '/STREAM/precomputed/%s/STREAM_result/edges.tsv' % dataset
+	edges = '/stream_web/precomputed/%s/STREAM_result/edges.tsv' % dataset
 	edge_list = []
 
 	with open(edges, 'r') as f:
@@ -5266,7 +5283,7 @@ def num_clicks_compute(root, gene, pathname):
 		try:
 
 			discovery_plot = RESULTS_FOLDER + '/%s/stream_plot_%s.png' % (root, gene)
-			discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read())
+			discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read()).decode('ascii')
 
 			return 'data:image/png;base64,{}'.format(discovery_plot_image)
 
@@ -5283,7 +5300,7 @@ def num_clicks_compute(root, gene, dataset):
 
 	try:
 
-		discovery_plot = '/STREAM/precomputed/%s/STREAM_result/%s/stream_plot_%s.png' % (dataset, root, gene)
+		discovery_plot = '/stream_web/precomputed/%s/STREAM_result/%s/stream_plot_%s.png' % (dataset, root, gene)
 		discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read())
 
 		return 'data:image/png;base64,{}'.format(discovery_plot_image)
@@ -5302,9 +5319,9 @@ def num_clicks_compute(fig_update, pathname):
 	RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
 
 	branches = []
-	find_tables = glob.glob(RESULTS_FOLDER + '/Transition_Genes/*.tsv')
+	find_tables = glob.glob(RESULTS_FOLDER + '/transition_genes/*.tsv')
 	for table in find_tables:
-		branch = table.split('_Genes_')[1].strip('.tsv')
+		branch = table.split('_genes_')[1].strip('.tsv')
 
 		if branch not in branches:
 			branches.append(branch)
@@ -5318,7 +5335,7 @@ def num_clicks_compute(fig_update, pathname):
 def num_clicks_compute(dataset):
 
 	branches = []
-	find_tables = glob.glob('/STREAM/precomputed/%s/STREAM_result/Transition_Genes/*.tsv' % dataset)
+	find_tables = glob.glob('/stream_web/precomputed/%s/STREAM_result/Transition_Genes/*.tsv' % dataset)
 	for table in find_tables:
 		branch = table.split('_Genes_')[1].strip('.tsv')
 
@@ -5341,7 +5358,7 @@ def update_table(slider, branch, figure, pathname):
 
 	use_this_table = ''
 
-	find_table = glob.glob(RESULTS_FOLDER + '/Transition_Genes/*.tsv')
+	find_table = glob.glob(RESULTS_FOLDER + '/transition_genes/*.tsv')
 	for table in find_table:
 		if branch in table:
 			use_this_table = table
@@ -5350,16 +5367,16 @@ def update_table(slider, branch, figure, pathname):
 	if len(use_this_table) > 0:
 
 		df = pd.read_table(use_this_table).fillna('')
-		df.columns = ['gene','stat','diff','pval','qval']
+		df.columns = ['gene','stat','logfc','pval','qval']
 
 		mapper =  {'stat': '{0:.2f}',
-		           'diff': '{0:.2f}',
+		           'logfc': '{0:.2f}',
 		           'pval': '{:.2g}',
 		           'qval': '{:.2g}'}
 		for key, value in mapper.items():
 			df[key] = df[key].apply(value.format)
 
-		dff = df.head(n = slider)[['gene', 'stat', 'diff', 'pval', 'qval']] # update with your own logic
+		dff = df.head(n = slider)[['gene', 'stat', 'logfc', 'pval', 'qval']] # update with your own logic
 
 		return generate_table(dff)
 
@@ -5373,7 +5390,7 @@ def update_table(slider, branch, dataset):
 
 	use_this_table = ''
 
-	find_table = glob.glob('/STREAM/precomputed/%s/STREAM_result/Transition_Genes/*.tsv' % dataset)
+	find_table = glob.glob('/stream_web/precomputed/%s/STREAM_result/Transition_Genes/*.tsv' % dataset)
 	for table in find_table:
 		if branch in table:
 			use_this_table = table

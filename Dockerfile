@@ -3,7 +3,7 @@
 ############################################################
 
 # Set the base image to stream
-FROM pinellolab/stream
+FROM pinellolab/stream:0.3.2
 
 # File Author / Maintainer
 MAINTAINER Huidong Chen
@@ -16,7 +16,7 @@ RUN pip install dash-core-components==0.21.1  # Supercharged components
 RUN pip install plotly --upgrade  # Plotly graphing library used in examples
 RUN pip install gunicorn
 
-#RUN apt-get install unzip 
+#RUN apt-get install unzip
 #libxml2 libxml2-dev -y
 
 # install zips
@@ -25,8 +25,9 @@ RUN pip install gunicorn
 # create environment
 COPY stream_web /stream_web
 
+WORKDIR /stream_web/
+
 # upload button
-COPY /stream_web/upload-button.zip /
 RUN unzip upload-button.zip && cd upload-button && python setup.py install
 RUN rm upload-button.zip
 RUN rm -Rf upload-button
@@ -37,8 +38,6 @@ COPY /stream_web/static/jquery-3.3.1.min.js /opt/conda/lib/python3.6/site-packag
 RUN mkdir /tmp/UPLOADS_FOLDER
 RUN mkdir /tmp/RESULTS_FOLDER
 
-
-WORKDIR /stream_web/
 
 EXPOSE 10001
 #CMD ["bash", "/stream_web/start_server_docker.sh"]
