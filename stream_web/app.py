@@ -77,7 +77,7 @@ def get_data(path):
 
 # STREAM logo
 stream_logo = get_data('/stream_web/static/stream_logo.png')
-stream_logo_image = base64.b64encode(open(stream_logo, 'rb').read())
+stream_logo_image = base64.b64encode(open(stream_logo, 'rb').read()).decode('ascii')
 
 mgh_logo = get_data('/stream_web/static/mgh.png')
 mgh_logo_image = base64.b64encode(open(mgh_logo, 'rb').read())
