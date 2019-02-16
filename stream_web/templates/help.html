@@ -146,51 +146,6 @@
             <h5><b>1).Input files</b></h5>
             <p>Data Matrix:
             <br>For <b>transcriptomic data</b>, STREAM only requires a tab-separated gene expression matrix (raw counts or normalized values) in .tsv or .tsv.gz file format. Each row represents a unique gene and each column is one cell. For raw counts, log2 transformation and library size normalization are necessary.
-
-            <table style="width: 60%; text-align: center"; border = "1">
-                <tbody>
-                <tr>
-                <td style="width: 15px;">&nbsp;</td>
-                <td style="width: 15px;">singles-BM0828-HSC-fresh-151027-1</td>
-                <td style="width: 15px;">singles-BM0828-HSC-fresh-151027-2</td>
-                <td style="width: 15px;">singles-BM0828-HSC-fresh-151027-3</td>
-                </tr>
-                <tr>
-                <td style="width: 15px;">AAAAAAA</td>
-                <td style="width: 15px;">-0.15973157637808505</td>
-                <td style="width: 15px;">0.18950966450007853</td>
-                <td style="width: 15px;">0.07713107176524692</td>
-                </tr>
-                <tr>
-                <td style="width: 15px;">AAAAAAG</td>
-                <td style="width: 15px;">-1.3630723054479532</td>
-                <td style="width: 15px;">-0.04770034004421244</td>
-                <td style="width: 15px;">0.6387323857481045</td>
-                </tr>
-                <tr>
-                <td style="width: 15px;">AAACACG</td>
-                <td style="width: 15px;">-0.2065161126378667</td>
-                <td style="width: 15px;">-1.3375384076872765</td>
-                <td style="width: 15px;">0.2660278729402342</td>
-                </tr>
-                <tr>
-                <td style="width: 15px;">AGCGTTA</td>
-                <td style="width: 15px;">-0.496859947462221</td>
-                <td style="width: 15px;">0.7181918229050274</td>
-                <td style="width: 15px;">0.19603357892921522</td>
-                </tr>
-                <tr>
-                <td style="width: 15px;">ATACTCA</td>
-                <td style="width: 15px;">-1.2127919166377426</td>
-                <td style="width: 15px;">0.7938414496478844</td>
-                <td style="width: 15px;">-1.2665513250104594</td>
-                </tr>
-                </tbody>
-            </table>
-
-            <br>For <b>epigenomic data</b>, to perform scATAC-seq trajectory inference analysis, the main input can be:
-            <br> 1)a set of files including count file, region file and sample file. Since this part is a bit time-consuming, currently it's not supported by the website yet. But users can easily achieve it by running STREAM at command line interface <a href="https://github.com/pinellolab/STREAM">https://github.com/pinellolab/STREAM</a>.
-            <br> 2)a precomputed scaled z-score file by STREAM. Each row represents a k-mer DNA sequence. Each column represents one cell. Each entry is a scaled z-score of the accessibility of each k-mer across cells</p>
             <table style="width: 70%; text-align: center"; border = "1">
                 <tbody>
                 <tr>
@@ -244,6 +199,51 @@
                 </tbody>
             </table>
 
+
+            <br>For <b>epigenomic data</b>, to perform scATAC-seq trajectory inference analysis, the main input can be:
+            <br> 1)a set of files including count file, region file and sample file. Since this part is a bit time-consuming, currently it's not supported by the website yet. But users can easily achieve it by running STREAM at command line interface <a href="https://github.com/pinellolab/STREAM">https://github.com/pinellolab/STREAM</a>.
+            <br> 2)a precomputed scaled z-score file by STREAM. Each row represents a k-mer DNA sequence. Each column represents one cell. Each entry is a scaled z-score of the accessibility of each k-mer across cells</p>
+            
+            <table style="width: 60%; text-align: center"; border = "1">
+                <tbody>
+                <tr>
+                <td style="width: 15px;">&nbsp;</td>
+                <td style="width: 15px;">singles-BM0828-HSC-fresh-151027-1</td>
+                <td style="width: 15px;">singles-BM0828-HSC-fresh-151027-2</td>
+                <td style="width: 15px;">singles-BM0828-HSC-fresh-151027-3</td>
+                </tr>
+                <tr>
+                <td style="width: 15px;">AAAAAAA</td>
+                <td style="width: 15px;">-0.15973157637808505</td>
+                <td style="width: 15px;">0.18950966450007853</td>
+                <td style="width: 15px;">0.07713107176524692</td>
+                </tr>
+                <tr>
+                <td style="width: 15px;">AAAAAAG</td>
+                <td style="width: 15px;">-1.3630723054479532</td>
+                <td style="width: 15px;">-0.04770034004421244</td>
+                <td style="width: 15px;">0.6387323857481045</td>
+                </tr>
+                <tr>
+                <td style="width: 15px;">AAACACG</td>
+                <td style="width: 15px;">-0.2065161126378667</td>
+                <td style="width: 15px;">-1.3375384076872765</td>
+                <td style="width: 15px;">0.2660278729402342</td>
+                </tr>
+                <tr>
+                <td style="width: 15px;">AGCGTTA</td>
+                <td style="width: 15px;">-0.496859947462221</td>
+                <td style="width: 15px;">0.7181918229050274</td>
+                <td style="width: 15px;">0.19603357892921522</td>
+                </tr>
+                <tr>
+                <td style="width: 15px;">ATACTCA</td>
+                <td style="width: 15px;">-1.2127919166377426</td>
+                <td style="width: 15px;">0.7938414496478844</td>
+                <td style="width: 15px;">-1.2665513250104594</td>
+                </tr>
+                </tbody>
+            </table>
             <br>
             <p>Additionally it is possible to provide these following files in .tsv or .tsv.gz format:
             <br>cell_labels file: .tsv or .tsv.gz format. Each item can be a putative cell type or sampling time point obtained from experiments. Cell labels are helpful for visually validating the inferred trajectory. The order of labels should be consistent with cell order in the gene expression matrix file. No header is necessary.
