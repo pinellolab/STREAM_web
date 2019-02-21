@@ -2031,7 +2031,6 @@ def compute_trajectories(pathname, n_clicks):
 
 		if os.path.exists(RESULTS_FOLDER + '/log1.txt'):
 
-			# print 'PASSING 111111111 LOLOLOLOLOLOLOLOLOLOLOLOLOLOLOLOLOL'
 
 			with open(UPLOADS_FOLDER + '/params.json', 'r') as f:
 				json_string = f.readline().strip()
@@ -2042,8 +2041,6 @@ def compute_trajectories(pathname, n_clicks):
 			f.close()
 
 			if 'Finished computation.\n' in f_data:
-
-				# print 'PASSING 2222222222 LOLOLOLOLOLOLOLOLOLOLOLOLOLOLOLOLOL'
 
 				matrix = glob.glob(UPLOADS_FOLDER + '/Data_Matrix*')
 				cell_label = glob.glob(UPLOADS_FOLDER + '/Cell_Labels*')
@@ -2246,8 +2243,6 @@ def compute_trajectories(pathname, n_clicks):
 				with open(UPLOADS_FOLDER + '/params.json', 'w') as f:
 					new_json_string = json.dumps(param_dict)
 					f.write(new_json_string + '\n')
-
-				# print 'PASSING 333333333 LOLOLOLOLOLOLOLOLOLOLOLOLOLOLOLOLOL'
 
 	return {
         'data': traces,
@@ -2490,13 +2485,11 @@ def compute_trajectories(pathname, threed_scatter, n_clicks):
 		RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
 
 		if os.path.exists(RESULTS_FOLDER + '/log1.txt'):
-            # print('---------------------- LOG1 FILE EXISTS!!!!!!!!!! ----------------------')
 			f = open(RESULTS_FOLDER + '/log1.txt', 'r')
 			f_data = f.readlines()
 			f.close()
 
 			if 'Finished computation.\n' in f_data:
-                # print('---------------------- FINISHED COMPUTATION EXISTS IN LOG1!!!!!! ----------------------')
 
 				matrix = glob.glob(UPLOADS_FOLDER + '/Data_Matrix*')
 				cell_label = glob.glob(UPLOADS_FOLDER + '/Cell_Labels*')
@@ -2862,7 +2855,6 @@ def num_clicks_compute(root, figure, pathname):
 
 	cell_coords = RESULTS_FOLDER + '/%s/subway_coord_cells.csv' % root
 	path_coords = glob.glob(RESULTS_FOLDER + '/%s/subway_coord_line*csv' % root)
-	# print(cell_coords)
 
 	cell_label = glob.glob(UPLOADS_FOLDER + '/Cell_Labels*')
 	cell_label_colors = glob.glob(UPLOADS_FOLDER + '/Cell_Label_Colors*')
@@ -3063,9 +3055,6 @@ def num_clicks_compute(root, dataset):
 						line = line.strip().split('\t')
 						cell_label_colors_dict[str(line[1])] = str(line[0])
 
-		# print cell_label_list
-		# print cell_label_colors_dict
-
 		color_plot = 0
 		if len(cell_label_list) > 0 and len(cell_label_colors_dict) > 0:
 			color_plot = 1
@@ -3147,11 +3136,6 @@ def num_clicks_compute(root, dataset):
 		except:
 			pass
 
-		# print x
-		# print y
-		# print c
-		# print labels
-
 		cell_types = {}
 		if color_plot == 0:
 			cell_types['Single Cells'] = [x, y, 'unlabeled', 'grey']
@@ -3171,8 +3155,6 @@ def num_clicks_compute(root, dataset):
 				cell_types[label][1].append(y_c)
 				cell_types[label][2].append(label)
 				cell_types[label][3].append(color)
-
-		# print cell_types
 
 		for label in cell_types:
 			traces.append(
@@ -3216,10 +3198,8 @@ def num_clicks_compute(root, figure, pathname):
 
 	# try:
 	rainbow_plot = RESULTS_FOLDER + '/%s/stream_plot.png' % root
-	# rainbow_plot_image = base64.b64encode(open(rainbow_plot, 'rb').read())
 	rainbow_plot_image = base64.b64encode(open(rainbow_plot, 'rb').read()).decode('ascii')
 
-	# print('----------------- TRYING TO DISPLAY STREAM PLOT -----------------------')
 	return 'data:image/png;base64,{}'.format(rainbow_plot_image)
 
 	# except:
@@ -3518,7 +3498,6 @@ def compute_single_gene(n_clicks, pathname, root, gene, norm, log2, atac, lle_dr
 						arguments_final.append(arguments[arg][0])
 
 			if param_dict['compute-run']:
-				# print('------------------ TRYING TO RUN COMPUTE SINGLE GENE!!!!!!!!!!!!!!!! ------------------')
 				sb.call('stream --for_web -p -g %s ' % gene + ' '.join(map(str, arguments_final)) + ' > %s/log2.txt' % (RESULTS_FOLDER), shell = True)
 
 			return {'display': 'block'}
@@ -3969,9 +3948,6 @@ def num_clicks_compute(fig_update, pathname):
 			json_string = f.readline().strip()
 			param_dict = json.loads(json_string)
 
-		print(param_dict['sg-genes'])
-		print(param_dict['discovery-genes'])
-
 		return [{'label': i, 'value': i} for i in param_dict['discovery-genes']]
 
 @app2.callback(
@@ -4239,7 +4215,6 @@ def compute_trajectories(pathname, root, gene, n_clicks):
 			f.close()
 
 			if 'Finished computation.\n' in f_data:
-				print('PASSSEDDDDDDDDDDDDDD 111111111111111')
 
 				matrix = glob.glob(UPLOADS_FOLDER + '/Data_Matrix*')
 				cell_label = glob.glob(UPLOADS_FOLDER + '/Cell_Labels*')
@@ -4249,15 +4224,10 @@ def compute_trajectories(pathname, root, gene, n_clicks):
 				gene_coords = RESULTS_FOLDER + '/%s/subway_coord_%s.csv' % (root, gene)
 				path_coords = glob.glob(RESULTS_FOLDER + '/%s/subway_coord_line*csv' % root)
 				genes = glob.glob(RESULTS_FOLDER + '/%s/subway_coord_*csv' % root)
-				print(genes)
 				genes = [x.split('_')[-1].strip('.csv') for x in genes]
-				print(genes)
 
-				print(param_dict['sg-genes'])
-				print([x for x in genes if x in param_dict['sg-genes']])
 				lowercase_genes = [x.lower() for x in param_dict['sg-genes']]
 				param_dict['discovery-genes'] = [x for x in genes if x.lower() in lowercase_genes]
-				print(param_dict['discovery-genes'])
 
 				with open(UPLOADS_FOLDER + '/params.json', 'w') as f:
 					new_json_string = json.dumps(param_dict)
@@ -4366,9 +4336,6 @@ def compute_trajectories(pathname, root, gene, n_clicks):
 				with open(UPLOADS_FOLDER + '/params.json', 'w') as f:
 					new_json_string = json.dumps(param_dict)
 					f.write(new_json_string + '\n')
-
-			else:
-				print('FAILED HAHAHAHAHAHAHAHAAHAHHAHAHA 111111111111111')
 
 	return {
         'data': traces,
@@ -5578,19 +5545,16 @@ def zip_dir(n_clicks, pathname, title_input, description_input, starting_node):
 			# 		proc.wait()
 
 			# 		full_path = RESULTS_FOLDER + '/' + 'stream-outputs.zip'
-			# 		print 'REDIRECTING TO ......................... %s' % full_path
 			# 		return '/dash/urldownload%s' % full_path
 
 					# send_file('%s/stream-outputs.zip' % (RESULTS_FOLDER), attachment_filename = 'stream-outputs.zip', as_attachment = True)
 
 					# bash_command('pushd %s && zip -r %s.zip %s && popd' % (RESULTS_FOLDER, overview_folder, overview_folder))
 
-					# print 'LOLOLOLOLOLOLOLOLOLOL'
 					# return {'display': 'block'}
 
 		else:
 			full_path = RESULTS_FOLDER + '/' + 'stream-outputs.zip'
-			# print 'INITIALIZING AT .................................. %s' % full_path
 			return '/dash/urldownload%s' % full_path
 
 
@@ -5603,7 +5567,6 @@ def zip_dir(n_clicks, pathname, title_input, description_input, starting_node):
 
 # def generate_report_url(buffer, pathname, n_clicks):
 
-# 	print 'N CLICKS HERRRERERRERERE: %s' % n_clicks
 # 	if n_clicks == 0:
 
 # 		UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
@@ -5611,7 +5574,6 @@ def zip_dir(n_clicks, pathname, title_input, description_input, starting_node):
 
 # 		full_path = RESULTS_FOLDER + '/' + 'stream-outputs.zip'
 
-# 		print 'TRIGGEREEEEDDDDDD!!!! %s' % full_path
 # 		return '/dash/urldownload%s' % full_path
 
 @app.server.route('/dash/urldownload/tmp/RESULTS_FOLDER/<directory>/stream-outputs.zip')
