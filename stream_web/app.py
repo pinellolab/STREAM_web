@@ -419,13 +419,13 @@ app2.layout = html.Div([
 
 	html.Hr(),
 
-	html.Label('Select Starting Branch', style = {'font-weight':'bold', 'padding-right':'10px'}),
+	html.Label('Select Starting Node', style = {'font-weight':'bold', 'padding-right':'10px'}),
 	dcc.Dropdown(
 			id = 'root2',
 		    options=[
-		        {'label': 'S0', 'value': 'S0'},
+		        {'label': 'S5', 'value': 'S5'},
 		    ],
-		    value='S0'
+		    value='S5'
 		),
 
 	html.Div(
@@ -1130,13 +1130,13 @@ app.layout = html.Div([
 
 		html.Hr(),
 
-		html.Label('Select Starting Branch', style = {'font-weight':'bold', 'padding-right':'10px'}),
+		html.Label('Select Starting Node', style = {'font-weight':'bold', 'padding-right':'10px'}),
 		dcc.Dropdown(
 				id = 'root',
 			    options=[
-			        {'label': 'S0', 'value': 'S0'},
+			        {'label': 'S5', 'value': 'S5'},
 			    ],
-			    value='S0'
+			    value='S5'
 			),
 
 		html.Div(
@@ -3969,6 +3969,9 @@ def num_clicks_compute(fig_update, pathname):
 			json_string = f.readline().strip()
 			param_dict = json.loads(json_string)
 
+		print(param_dict['sg-genes'])
+		print(param_dict['discovery-genes'])
+
 		return [{'label': i, 'value': i} for i in param_dict['discovery-genes']]
 
 @app2.callback(
@@ -4236,6 +4239,7 @@ def compute_trajectories(pathname, root, gene, n_clicks):
 			f.close()
 
 			if 'Finished computation.\n' in f_data:
+				print('PASSSEDDDDDDDDDDDDDD 111111111111111')
 
 				matrix = glob.glob(UPLOADS_FOLDER + '/Data_Matrix*')
 				cell_label = glob.glob(UPLOADS_FOLDER + '/Cell_Labels*')
@@ -4245,9 +4249,15 @@ def compute_trajectories(pathname, root, gene, n_clicks):
 				gene_coords = RESULTS_FOLDER + '/%s/subway_coord_%s.csv' % (root, gene)
 				path_coords = glob.glob(RESULTS_FOLDER + '/%s/subway_coord_line*csv' % root)
 				genes = glob.glob(RESULTS_FOLDER + '/%s/subway_coord_*csv' % root)
+				print(genes)
 				genes = [x.split('_')[-1].strip('.csv') for x in genes]
+				print(genes)
 
-				param_dict['discovery-genes'] = [x for x in genes if x in param_dict['sg-genes']]
+				print(param_dict['sg-genes'])
+				print([x for x in genes if x in param_dict['sg-genes']])
+				lowercase_genes = [x.lower() for x in param_dict['sg-genes']]
+				param_dict['discovery-genes'] = [x for x in genes if x.lower() in lowercase_genes]
+				print(param_dict['discovery-genes'])
 
 				with open(UPLOADS_FOLDER + '/params.json', 'w') as f:
 					new_json_string = json.dumps(param_dict)
@@ -4356,6 +4366,9 @@ def compute_trajectories(pathname, root, gene, n_clicks):
 				with open(UPLOADS_FOLDER + '/params.json', 'w') as f:
 					new_json_string = json.dumps(param_dict)
 					f.write(new_json_string + '\n')
+
+			else:
+				print('FAILED HAHAHAHAHAHAHAHAAHAHHAHAHA 111111111111111')
 
 	return {
         'data': traces,
