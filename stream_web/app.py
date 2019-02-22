@@ -125,10 +125,10 @@ def index():
 	if not os.path.exists(RESULTS_FOLDER):
 		os.makedirs(RESULTS_FOLDER)
 
-	param_dict = {'compute-clicks':0, 'sg-clicks':0, 'discovery-clicks':0, 'correlation-clicks':0, 'starting-nodes':['S0'],
-	'sg-genes':['False'], 'discovery-genes':['False'], 'correlation-genes':['False'], 'sg-gene':'False', 'discovery-gene':'False', 'correlation-gene':'False',
-	'compute-run':False,'sg-run':False,'discovery-run':False, 'correlation-run':False, 'required_files': ['Data Matrix', 'Cell Labels', 'Cell Label Colors'],
-	'checkbutton1':1, 'checkpoint1':True,'checkbutton2':1, 'checkpoint2':True,'checkbutton3':1, 'checkpoint3':True,'checkbutton4':1, 'checkpoint4':True,
+	param_dict = {'compute-clicks':0, 'sg-clicks':0, 'discovery-clicks':0, 'correlation-clicks':0, 'leaf-clicks':0, 'starting-nodes':['S0'],
+	'sg-genes':['False'], 'discovery-genes':['False'], 'correlation-genes':['False'], 'leaf-genes':['False'],'sg-gene':'False', 'discovery-gene':'False', 'correlation-gene':'False', 'leaf-gene':'False',
+	'compute-run':False,'sg-run':False,'discovery-run':False, 'correlation-run':False, 'leaf-run':False, 'required_files': ['Data Matrix', 'Cell Labels', 'Cell Label Colors'],
+	'checkbutton1':1, 'checkpoint1':True,'checkbutton2':1, 'checkpoint2':True,'checkbutton3':1, 'checkpoint3':True,'checkbutton4':1, 'checkpoint4':True,'checkbutton5':1, 'checkpoint5':True,
 	'matrix-update':'Data Matrix: No Upload (Required)', 'cl-update':'Cell Labels File: No Upload (Optional)', 'clc-update':'Cell Label Colors File: No Upload (Optional)', 'compute-disable':True, 'compute-update':'Load Personal or Example Data (Step 1)'}
 
 	with open(UPLOADS_FOLDER + '/params.json', 'w') as f:
@@ -688,6 +688,7 @@ app.layout = html.Div([
 	dcc.Interval(id='common-interval-2', interval=2000000000),
 	dcc.Interval(id='common-interval-3', interval=2000000000),
 	dcc.Interval(id='common-interval-4', interval=2000000000),
+	dcc.Interval(id='common-interval-5', interval=2000000000),
 
 	html.Div(id = 'custom-loading-states-1',
 		children = [
@@ -717,8 +718,15 @@ app.layout = html.Div([
 
 		], style = {'display':'none'}),
 
+	html.Div(id = 'custom-loading-states-5',
+		children = [
+
+		html.Div(id = 'custom-loading-state1', className = '_dash-loading-callback_custom', children = ['Loading...', html.Center(children=[html.Div(id = 'custom-loading-state2', className = 'loader', style = {'display':'block'})])],  style = {'display':'block'})
+
+		], style = {'display':'none'}),
+
 	html.Img(src='data:image/png;base64,{}'.format(stream_logo_image), width = '50%'),
-	html.H2('Single-cell Trajectory Reconstruction Exploration And Mapping'),
+	html.H2('Single-cell Trajectory Reconstruction Exploration And Mapping!!!12'),
 
 	html.Hr(),
 
@@ -1411,6 +1419,85 @@ app.layout = html.Div([
 					dcc.Graph(id='2d-subway-correlation', animate=False),
 
 					html.Img(id = 'correlation-plot', src = None, width = '90%', style = {'align':'middle'}),
+
+					], className = 'seven columns'),
+
+				], className = 'row'),
+
+			])
+
+		]),
+
+	html.Hr(),
+
+	# LOOK HERE FOR LEAF!!!!!
+
+	html.Div([
+
+		html.H3(id = 'buffer10', children = 'Step 3D: Identify Leaf Genes (~10 Minutes)'),
+		html.Button(id = 'leaf-button', children = 'Compute', n_clicks = 0),
+
+		html.Br(),
+		html.Br(),
+		html.Br(),
+
+		html.Div(
+			id = 'leaf-container',
+			children = [
+
+			html.Button(id = 'leaf-plot-button', children = '(-) Hide Graphs', n_clicks = 0),
+
+			html.Br(),
+			html.Br(),
+
+			html.Div(
+
+				id = 'leaf-plot-container',
+				children = [
+
+				html.Div([
+
+					html.Label('Branch for Leaf Gene Analysis', style = {'font-weight':'bold', 'padding-right':'10px'}),
+			        dcc.Dropdown(
+							id = 'leaf-branches',
+						    options=[
+						        {'label': 'Choose branch!', 'value': 'False'}
+						    ],
+						    value = 'False'
+						),
+
+			        html.Br(),
+
+					html.Label('Number of Genes', style = {'font-weight':'bold', 'padding-right':'10px'}),
+			        dcc.Slider(
+				        id='leaf-slider',
+				        min=0,
+				        max=50,
+				        value=10,
+				        step=1
+			        ),
+
+			        html.Br(),
+
+					html.Div(id = 'leaf-table', style = {'font-family': 'courier', 'align':'center'}),
+
+					], className = 'five columns'),
+
+
+				html.Div([
+
+					html.Label('Gene', style = {'font-weight':'bold', 'padding-right':'10px'}),
+					dcc.Dropdown(
+							id = 'leaf-gene',
+						    options=[
+						        {'label': 'Choose gene!', 'value': 'False'}
+						    ],
+						    value = 'False'
+						),
+
+					dcc.Graph(id='2d-subway-leaf', animate=False),
+
+					html.Img(id = 'leaf-plot', src = None, width = '90%', style = {'align':'middle'}),
 
 					], className = 'seven columns'),
 
@@ -3948,7 +4035,14 @@ def num_clicks_compute(fig_update, pathname):
 			json_string = f.readline().strip()
 			param_dict = json.loads(json_string)
 
-		return [{'label': i, 'value': i} for i in param_dict['discovery-genes']]
+		gene_conversion_dict = {}
+		with open(RESULTS_FOLDER + '/gene_conversion.tsv', 'r') as f:
+			next(f)
+			for line in f:
+				orig, new = line.split('\t')
+				gene_conversion_dict[new.strip('\n')] = orig.strip('\n')
+
+		return [{'label': gene_conversion_dict[i], 'value': i} for i in param_dict['discovery-genes'] if i != 'False']
 
 @app2.callback(
     Output('discovery-gene2', 'options'),
@@ -4746,7 +4840,14 @@ def num_clicks_compute(fig_update, pathname):
 			json_string = f.readline().strip()
 			param_dict = json.loads(json_string)
 
-		return [{'label': i, 'value': i} for i in param_dict['correlation-genes']]
+		gene_conversion_dict = {}
+		with open(RESULTS_FOLDER + '/gene_conversion.tsv', 'r') as f:
+			next(f)
+			for line in f:
+				orig, new = line.split('\t')
+				gene_conversion_dict[new.strip('\n')] = orig.strip('\n')
+
+		return [{'label': gene_conversion_dict[i], 'value': i} for i in param_dict['correlation-genes'] if i != 'False']
 
 @app2.callback(
     Output('correlation-gene2', 'options'),
@@ -5023,7 +5124,8 @@ def compute_trajectories(pathname, root, gene, n_clicks):
 				genes = glob.glob(RESULTS_FOLDER + '/%s/subway_coord_*csv' % root)
 				genes = [x.split('_')[-1].strip('.csv') for x in genes]
 
-				param_dict['correlation-genes'] = [x for x in genes if x in param_dict['sg-genes']]
+				lowercase_genes = [x.lower() for x in param_dict['sg-genes']]
+				param_dict['correlation-genes'] = [x for x in genes if x.lower() in lowercase_genes]
 
 				with open(UPLOADS_FOLDER + '/params.json', 'w') as f:
 					new_json_string = json.dumps(param_dict)
@@ -5412,6 +5514,746 @@ def update_table(slider, branch, dataset):
 		dff = df.head(n = slider)[['gene', 'stat', 'diff', 'pval', 'qval']] # update with your own logic
 
 		return generate_table(dff)
+
+### LEAF GENE PART!!!!!
+
+@app.callback(
+	Output('leaf-plot-button', 'children'),
+	[Input('leaf-plot-button', 'n_clicks')])
+
+def update_score_params_button(n_clicks):
+
+	if n_clicks%2 != 0:
+		return '(+) Show Graph'
+	else:
+		return '(-) Hide Graph'
+
+# @app2.callback(
+# 	Output('leaf-plot-button2', 'children'),
+# 	[Input('leaf-plot-button2', 'n_clicks')])
+
+# def update_score_params_button(n_clicks):
+
+# 	if n_clicks%2 != 0:
+# 		return '(-) Hide'
+# 	else:
+# 		return '(-) Show'
+
+@app.callback(
+	Output('leaf-plot-container', 'style'),
+	[Input('leaf-plot-button', 'n_clicks')])
+
+def update_score_params_visual(n_clicks):
+
+	if n_clicks%2 != 0:
+		return {'display': 'none'}
+	else:
+		return {'display': 'block'}
+
+# @app2.callback(
+# 	Output('leaf-plot-container2', 'style'),
+# 	[Input('leaf-plot-button2', 'n_clicks')])
+
+# def update_score_params_visual(n_clicks):
+
+# 	if n_clicks%2 != 0:
+# 		return {'display': 'block'}
+# 	else:
+# 		return {'display': 'none'}
+
+@app.callback(
+    Output('leaf-gene', 'options'),
+    [Input('2d-subway-leaf', 'figure'),
+    Input('url', 'pathname')])
+
+def num_clicks_compute(fig_update, pathname):
+
+	if pathname:
+
+		UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+		RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+
+		with open(UPLOADS_FOLDER + '/params.json', 'r') as f:
+			json_string = f.readline().strip()
+			param_dict = json.loads(json_string)
+
+		gene_conversion_dict = {}
+		with open(RESULTS_FOLDER + '/gene_conversion.tsv', 'r') as f:
+			next(f)
+			for line in f:
+				orig, new = line.split('\t')
+				gene_conversion_dict[new.strip('\n')] = orig.strip('\n')
+
+		return [{'label': gene_conversion_dict[i], 'value': i} for i in param_dict['leaf-genes'] if i != 'False']
+
+# @app2.callback(
+#     Output('leaf-gene2', 'options'),
+#     [Input('precomp-dataset', 'value')])
+
+# def num_clicks_compute(dataset):
+
+# 	gene_list_tmp = glob.glob('/stream_web/precomputed/%s/STREAM_result/S0/stream_plot_*png' % dataset)
+
+# 	gene_list = [x.split('_')[-1].replace('.png', '') for x in gene_list_tmp]
+
+# 	return [{'label': i, 'value': i} for i in gene_list]
+
+@app.callback(
+    Output('leaf-container', 'style'),
+    [Input('2d-subway-leaf', 'figure'),
+    Input('url', 'pathname')])
+
+def smoothing_container(fig_update, pathname):
+
+	if pathname:
+
+		UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+		RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+
+		with open(UPLOADS_FOLDER + '/params.json', 'r') as f:
+			json_string = f.readline().strip()
+			param_dict = json.loads(json_string)
+
+		if param_dict['leaf-clicks'] > 0:
+			return {'display': 'block'}
+		else:
+			return {'display': 'none'}
+
+	else:
+		return {'display': 'none'}
+
+@app.callback(
+    Output('leaf-button', 'disabled'),
+    [Input('leaf-button', 'n_clicks'),
+    Input('url', 'pathname')],
+    events=[Event('common-interval', 'interval')])
+
+def num_clicks_compute(n_clicks, pathname):
+
+	if pathname:
+
+		UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+		RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+
+		with open(UPLOADS_FOLDER + '/params.json', 'r') as f:
+			json_string = f.readline().strip()
+			param_dict = json.loads(json_string)
+
+		if param_dict['compute-run']:
+
+			if n_clicks > param_dict['leaf-clicks']:
+				return True
+			else:
+				return False
+
+		else:
+			return True
+
+	else:
+		return True
+
+@app.callback(
+    Output('leaf-button', 'children'),
+    [Input('leaf-button', 'n_clicks'),
+    Input('url', 'pathname')],
+    events=[Event('common-interval', 'interval')])
+
+def num_clicks_compute(n_clicks, pathname):
+
+	if pathname:
+
+		UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+		RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+
+		with open(UPLOADS_FOLDER + '/params.json', 'r') as f:
+			json_string = f.readline().strip()
+			param_dict = json.loads(json_string)
+
+		if n_clicks > param_dict['leaf-clicks'] and param_dict['compute-run']:
+			return 'Running...'
+		elif param_dict['compute-run']:
+			return 'Perform Analysis'
+		elif not param_dict['compute-run']:
+			return 'Complete Step 2'
+
+	else:
+		return 'Complete Step 2'
+
+@app.callback(
+    Output('buffer10', 'style'),
+    [Input('leaf-button', 'n_clicks'),
+    Input('url', 'pathname')],
+    state = [State('norm', 'value'),
+    State('log2', 'value'),
+    State('atac', 'value'),
+    State('lle-dr', 'value'),
+    State('lle-nbs', 'value'),
+    State('select', 'value'),
+    State('loess_frac', 'value'),
+    State('pca_n_PC', 'value'),
+    State('pca_first_PC', 'value'),
+    # State('feature_genes', 'value'),
+    State('clustering', 'value'),
+    State('n_clusters', 'value'),
+    State('damping', 'value'),
+    State('EPG_n_nodes', 'value'),
+    State('EPG_lambda', 'value'),
+    State('EPG_mu', 'value'),
+    State('EPG_trimmingradius', 'value'),
+    # State('EPG_finalenergy', 'value'),
+    State('EPG_alpha', 'value'),
+    # State('EPG_beta', 'value'),
+    State('EPG_collapse', 'value'),
+    State('EPG_collapse_mode', 'value'),
+    State('EPG_collapse_par', 'value'),
+    State('EPG_shift', 'value'),
+    State('EPG_shift_mode', 'value'),
+    State('EPG_shift_DR', 'value'),
+    State('EPG_shift_maxshift', 'value'),
+    State('disable_EPG_ext', 'value'),
+    State('EPG_ext_mode', 'value'),
+    State('EPG_ext_par', 'value'),
+    State('disable_EPG_optimize', 'value'),
+    State('root', 'value'),
+    State('leaf-gene', 'value')])
+
+def compute_leaf(n_clicks, pathname, norm, log2, atac, lle_dr, lle_nbs, select,loess_frac,pca_n_PC,pca_first_PC,clustering,n_clusters,damping,EPG_n_nodes,EPG_lambda,EPG_mu,EPG_trimmingradius,EPG_alpha,EPG_collapse,EPG_collapse_mode,EPG_collapse_par,EPG_shift,EPG_shift_mode,EPG_shift_DR,EPG_shift_maxshift,disable_EPG_ext,EPG_ext_mode,EPG_ext_par,disable_EPG_optimize,root,gene):
+
+	if pathname:
+
+		UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+		RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+
+		with open(UPLOADS_FOLDER + '/params.json', 'r') as f:
+			json_string = f.readline().strip()
+			param_dict = json.loads(json_string)
+
+		if n_clicks > param_dict['leaf-clicks'] or param_dict['leaf-gene'] != gene:
+
+			matrix = glob.glob(UPLOADS_FOLDER + '/Data_Matrix*')
+			cell_label = glob.glob(UPLOADS_FOLDER + '/Cell_Labels*')
+			cell_label_colors = glob.glob(UPLOADS_FOLDER + '/Cell_Label_Colors*')
+
+			arguments = {'-m':[], '-l':[], '-c':[], '-o': [RESULTS_FOLDER], '--norm':[norm], '--log2':[log2], '--atac':[atac], '--lle_components':[lle_dr], '--lle_neighbours':[lle_nbs], '--select_features':[select],
+			'--loess_frac':[loess_frac], '--pca_n_PC':[pca_n_PC], '--pca_first_PC':[pca_first_PC],'--clustering':[clustering],'--n_clusters':[n_clusters],'--damping':[damping],'--EPG_n_nodes':[EPG_n_nodes],
+			'--EPG_lambda':[EPG_lambda],'--EPG_mu':[EPG_mu],'--EPG_trimmingradius':[EPG_trimmingradius],'--EPG_alpha':[EPG_alpha],'--EPG_collapse':[EPG_collapse],
+			'--EPG_collapse_mode':[EPG_collapse_mode],'--EPG_collapse_par':[EPG_collapse_par],'--EPG_shift':[EPG_shift],'--EPG_shift_mode':[EPG_shift_mode],'--EPG_shift_DR':[EPG_shift_DR],'--EPG_shift_maxshift':[EPG_shift_maxshift],
+			'--disable_EPG_ext':[disable_EPG_ext],'--EPG_ext_mode':[EPG_ext_mode],'--EPG_ext_par':[EPG_ext_par],'--disable_EPG_optimize':[disable_EPG_optimize]}
+
+			if len(matrix) > 0:
+				arguments['-m'].append(matrix[0])
+
+			if len(cell_label) > 0:
+				arguments['-l'].append(cell_label[0])
+
+			if len(cell_label_colors) > 0:
+				arguments['-c'].append(cell_label_colors[0])
+
+			arguments_final = []
+			for arg in arguments:
+				if len(arguments[arg]) > 0:
+					if arguments[arg][0] == 'True':
+						arguments_final.append(arg)
+					elif arguments[arg][0] != 'False' and arguments[arg][0] != None:
+						arguments_final.append(arg)
+						arguments_final.append(arguments[arg][0])
+
+			if not param_dict['leaf-run']:
+				sb.call('stream --for_web --LG -p ' + ' '.join(map(str, arguments_final)) + ' > %s/log5.txt' % (RESULTS_FOLDER), shell = True)
+
+			return {'display': 'block'}
+
+		else:
+			return {'display': 'block'}
+
+	else:
+		return {'display': 'block'}
+
+@app.callback(
+	Output('custom-loading-states-5', 'style'),
+	[Input('leaf-button', 'n_clicks'),
+	Input('2d-subway-leaf', 'figure'),
+	Input('url', 'pathname')])
+
+def update_container(n_clicks, figure, pathname):
+
+	UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+	RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+
+	with open(UPLOADS_FOLDER + '/params.json', 'r') as f:
+		json_string = f.readline().strip()
+		param_dict = json.loads(json_string)
+
+	if n_clicks == param_dict['checkbutton5']:
+
+		return {'display': 'block'}
+
+	elif not param_dict['checkpoint5']:
+
+		return {'display': 'block'}
+
+	else:
+
+		return {'display': 'none'}
+
+@app.callback(
+	Output('common-interval-5', 'interval'),
+	[Input('leaf-button', 'n_clicks'),
+	Input('2d-subway-leaf', 'figure'),
+	Input('url', 'pathname')])
+
+def update_container(n_clicks, figure, pathname):
+
+	UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+	RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+
+	with open(UPLOADS_FOLDER + '/params.json', 'r') as f:
+		json_string = f.readline().strip()
+		param_dict = json.loads(json_string)
+
+	if n_clicks == param_dict['checkbutton5']:
+
+		return 5000
+
+	elif not param_dict['checkpoint5']:
+
+		return 5000
+
+	else:
+
+		return 2000000000
+
+@app.callback(
+    Output('2d-subway-leaf', 'figure'),
+    [Input('url', 'pathname'),
+    Input('root', 'value'),
+    Input('leaf-gene', 'value')],
+    state=[State('leaf-button', 'n_clicks')],
+    events=[Event('common-interval-5', 'interval')])
+
+def compute_trajectories(pathname, root, gene, n_clicks):
+
+	traces = []
+
+	if pathname:
+
+		UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+		RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+
+		if os.path.exists(RESULTS_FOLDER + '/log5.txt'):
+
+			with open(UPLOADS_FOLDER + '/params.json', 'r') as f:
+				json_string = f.readline().strip()
+				param_dict = json.loads(json_string)
+
+			f = open(RESULTS_FOLDER + '/log5.txt', 'r')
+			f_data = f.readlines()
+			f.close()
+
+			if 'Finished computation.\n' in f_data:
+
+				matrix = glob.glob(UPLOADS_FOLDER + '/Data_Matrix*')
+				cell_label = glob.glob(UPLOADS_FOLDER + '/Cell_Labels*')
+				cell_label_colors = glob.glob(UPLOADS_FOLDER + '/Cell_Label_Colors*')
+
+				gene_coords = RESULTS_FOLDER + '/%s/subway_coord_%s.csv' % (root, gene)
+				path_coords = glob.glob(RESULTS_FOLDER + '/%s/subway_coord_line*csv' % root)
+				genes = glob.glob(RESULTS_FOLDER + '/%s/subway_coord_*csv' % root)
+				genes = [x.split('_')[-1].strip('.csv') for x in genes]
+
+				lowercase_genes = [x.lower() for x in param_dict['sg-genes']]
+				param_dict['leaf-genes'] = [x for x in genes if x.lower() in lowercase_genes]
+
+				with open(UPLOADS_FOLDER + '/params.json', 'w') as f:
+					new_json_string = json.dumps(param_dict)
+					f.write(new_json_string + '\n')
+
+				edges = RESULTS_FOLDER + '/edges.tsv'
+				edge_list = []
+
+				with open(edges, 'r') as f:
+					for line in f:
+						line = line.strip().split('\t')
+						edge_list.append([str(line[0]), str(line[1])])
+
+				path_coords_reordered = []
+				for e in edge_list:
+					entry = [x for x in path_coords if ((e[0] in x.split('/')[-1]) and (e[1] in x.split('/')[-1]))]
+					path_coords_reordered.append(entry[0])
+
+				for path in path_coords:
+					if path not in path_coords_reordered:
+						path_coords_reordered.append(path)
+
+				traces = []
+				for path in path_coords_reordered:
+					x_p = []
+					y_p = []
+					s1 = path.strip().split('_')[-2]
+					s2 = path.strip().split('_')[-1].strip('.csv')
+					s_3 = [s1, s2]
+					path_name = '-'.join(map(str, s_3))
+					with open(path, 'r') as f:
+						next(f)
+						for line in f:
+							line = line.strip().split('\t')
+							x_p.append(float(line[0]))
+							y_p.append(float(line[1]))
+
+						if len(x_p) == 2:
+							text_tmp = [s1, s2]
+						elif len(x_p) == 4:
+							text_tmp = [s1, None, None, s2]
+						elif len(x_p) == 6:
+							text_tmp = [s1, None, None, None, None, s2]
+
+						traces.append(
+
+							go.Scatter(
+									    x = x_p, y = y_p,
+									    text = text_tmp,
+									    mode = 'lines+markers+text',
+									    opacity = 0.7,
+									    name = path_name,
+									    line=dict(
+									        width = 3,
+									        color = 'grey'
+									    ),
+									    textfont=dict(
+											size = 20
+										)
+									)
+
+							)
+
+				x_c = []
+				y_c = []
+				c = []
+				exp = []
+				exp_scaled = []
+
+				try:
+					with open(gene_coords, 'r') as f:
+						next(f)
+						for line in f:
+							line = line.strip().split('\t')
+							c.append(str(line[0]))
+							x_c.append(float(line[1]))
+							y_c.append(float(line[2]))
+							exp_scaled.append(float(line[3]))
+							# exp_scaled.append(float(line[4]))
+				except:
+					pass
+
+				exp_labels = ['Expression: ' + str(x) for x in exp_scaled]
+
+				traces.append(
+					go.Scatter(
+								x = x_c,
+								y = y_c,
+								mode='markers',
+								opacity = 0.6,
+								name = 'Single Cells',
+								text = exp_labels,
+								marker = dict(
+									size = 6,
+									color = exp_scaled,
+									colorscale = 'RdBu'
+									)
+							)
+						)
+
+				param_dict['leaf-clicks'] = n_clicks
+				param_dict['leaf-gene'] = gene
+				param_dict['leaf-run'] = True
+				param_dict['checkbutton5'] += 1
+				param_dict['checkpoint5'] = True
+
+				with open(UPLOADS_FOLDER + '/params.json', 'w') as f:
+					new_json_string = json.dumps(param_dict)
+					f.write(new_json_string + '\n')
+
+	return {
+        'data': traces,
+        'layout': go.Layout(
+        	autosize = True,
+        	margin=dict(l=0,r=0,t=0),
+            hovermode='closest',
+            xaxis = dict(showgrid = False, zeroline=False, showline=True, title = 'Pseudotime'),
+            yaxis = dict(showgrid = False, zeroline=False, title = ''),
+        )
+    }
+
+# @app2.callback(
+#     Output('2d-subway-leaf2', 'figure'),
+#     [Input('precomp-dataset', 'value'),
+#     Input('root2', 'value'),
+#     Input('leaf-gene2', 'value')])
+
+# def compute_trajectories(dataset, root, gene):
+
+# 	traces = []
+
+# 	cell_coords = '/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_cells.csv' % (dataset, root)
+# 	path_coords = glob.glob('/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_line*csv' % (dataset, root))
+# 	gene_coords = '/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_%s.csv' % (dataset, root, gene)
+
+# 	cell_label = '/stream_web/precomputed/%s/cell_label.tsv.gz' % dataset
+# 	cell_label_colors = '/stream_web/precomputed/%s/cell_label_color.tsv.gz' % dataset
+
+# 	edges = '/stream_web/precomputed/%s/STREAM_result/edges.tsv' % dataset
+# 	edge_list = []
+
+# 	with open(edges, 'r') as f:
+# 		for line in f:
+# 			line = line.strip().split('\t')
+# 			edge_list.append([str(line[0]), str(line[1])])
+
+# 	path_coords_reordered = []
+# 	for e in edge_list:
+# 		entry = [x for x in path_coords if ((e[0] in x.split('/')[-1]) and (e[1] in x.split('/')[-1]))]
+# 		path_coords_reordered.append(entry[0])
+
+# 	for path in path_coords:
+# 		if path not in path_coords_reordered:
+# 			path_coords_reordered.append(path)
+
+# 	traces = []
+# 	for path in path_coords_reordered:
+# 		x_p = []
+# 		y_p = []
+# 		s1 = path.strip().split('_')[-2]
+# 		s2 = path.strip().split('_')[-1].strip('.csv')
+# 		s_3 = [s1, s2]
+# 		path_name = '-'.join(map(str, s_3))
+# 		with open(path, 'r') as f:
+# 			next(f)
+# 			for line in f:
+# 				line = line.strip().split('\t')
+# 				x_p.append(float(line[0]))
+# 				y_p.append(float(line[1]))
+
+# 			if len(x_p) == 2:
+# 				text_tmp = [s1, s2]
+# 			elif len(x_p) == 4:
+# 				text_tmp = [s1, None, None, s2]
+# 			elif len(x_p) == 6:
+# 				text_tmp = [s1, None, None, None, None, s2]
+
+# 			traces.append(
+
+# 				go.Scatter(
+# 						    x = x_p, y = y_p,
+# 						    text = text_tmp,
+# 						    mode = 'lines+markers+text',
+# 						    opacity = 0.7,
+# 						    name = path_name,
+# 						    line=dict(
+# 						        width = 3,
+# 						        color = 'grey'
+# 						    ),
+# 						    textfont=dict(
+# 								size = 20
+# 							)
+# 						)
+
+# 				)
+
+# 	x_c = []
+# 	y_c = []
+# 	c = []
+# 	exp = []
+# 	exp_scaled = []
+
+# 	try:
+# 		with open(gene_coords, 'r') as f:
+# 			next(f)
+# 			for line in f:
+# 				line = line.strip().split('\t')
+# 				c.append(str(line[0]))
+# 				x_c.append(float(line[1]))
+# 				y_c.append(float(line[2]))
+# 				exp_scaled.append(float(line[3]))
+# 				# exp_scaled.append(float(line[4]))
+# 	except:
+# 		pass
+
+# 	exp_labels = ['Expression: ' + str(x) for x in exp_scaled]
+
+# 	traces.append(
+# 		go.Scatter(
+# 					x = x_c,
+# 					y = y_c,
+# 					mode='markers',
+# 					opacity = 0.6,
+# 					name = 'Single Cells',
+# 					text = exp_labels,
+# 					marker = dict(
+# 						size = 6,
+# 						color = exp_scaled,
+# 						colorscale = 'RdBu'
+# 						)
+# 				)
+# 			)
+
+# 	return {
+#         'data': traces,
+#         'layout': go.Layout(
+#         	autosize = True,
+#         	margin=dict(l=0,r=0,t=0),
+#             hovermode='closest',
+#             xaxis = dict(showgrid = False, zeroline=False, showline=True, title = 'Pseudotime'),
+#             yaxis = dict(showgrid = False, zeroline=False, title = ''),
+#         )
+#     }
+
+@app.callback(
+    Output('leaf-plot', 'src'),
+    [Input('root', 'value'),
+    Input('leaf-gene', 'value'),
+    Input('url', 'pathname')])
+
+def num_clicks_compute(root, gene, pathname):
+
+	UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+	RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+
+	if gene != 'False':
+
+		try:
+
+			discovery_plot = RESULTS_FOLDER + '/%s/stream_plot_%s.png' % (root, gene)
+			discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read()).decode('ascii')
+
+			return 'data:image/png;base64,{}'.format(discovery_plot_image)
+
+		except:
+			pass
+
+# @app2.callback(
+#     Output('leaf-plot2', 'src'),
+#     [Input('root2', 'value'),
+#     Input('leaf-gene2', 'value'),
+#     Input('precomp-dataset', 'value')])
+
+# def num_clicks_compute(root, gene, dataset):
+
+# 	try:
+
+# 		discovery_plot = '/stream_web/precomputed/%s/STREAM_result/%s/stream_plot_%s.png' % (dataset, root, gene)
+# 		discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read()).decode('ascii')
+
+# 		return 'data:image/png;base64,{}'.format(discovery_plot_image)
+
+# 	except:
+# 		pass
+
+@app.callback(
+    Output('leaf-branches', 'options'),
+    [Input('2d-subway-leaf', 'figure'),
+    Input('url', 'pathname')])
+
+def num_clicks_compute(fig_update, pathname):
+
+	UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+	RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+
+	branches = []
+	find_tables = glob.glob(RESULTS_FOLDER + '/leaf_genes/*.tsv')
+	for table in find_tables:
+		branch = table.split('_genes')[-1].strip('.tsv')
+
+		if (branch not in branches) and (len(branch) > 0):
+			branches.append(branch)
+
+	return [{'label': i, 'value': i} for i in branches]
+
+# @app2.callback(
+#     Output('leaf-branches2', 'options'),
+#     [Input('precomp-dataset', 'value')])
+
+# def num_clicks_compute(dataset):
+
+# 	branches = []
+# 	find_tables = glob.glob('/stream_web/precomputed/%s/STREAM_result/Leaf_Genes/*.tsv' % dataset)
+# 	for table in find_tables:
+# 		branch = table.split('_Genes')[1].strip('.tsv')
+
+# 		if branch not in branches:
+# 			branches.append(branch)
+
+# 	return [{'label': i, 'value': i} for i in branches]
+
+@app.callback(
+	Output('leaf-table', 'children'),
+	[Input('leaf-slider', 'value'),
+	Input('leaf-branches', 'value'),
+	Input('2d-subway-leaf', 'figure'),
+	Input('url', 'pathname')])
+
+def update_table(slider, branch, figure, pathname):
+
+	UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+	RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+
+	use_this_table = ''
+
+	find_table = glob.glob(RESULTS_FOLDER + '/leaf_genes/*.tsv')
+	for table in find_table:
+		if branch in table:
+			use_this_table = table
+			break
+
+	if len(use_this_table) > 0:
+
+		df = pd.read_table(use_this_table).fillna('')
+		# df.columns = ['gene','stat','logfc','pval','qval']
+
+		# mapper =  {'stat': '{0:.2f}',
+		#            'logfc': '{0:.2f}',
+		#            'pval': '{:.2g}',
+		#            'qval': '{:.2g}'}
+		# for key, value in mapper.items():
+		# 	df[key] = df[key].apply(value.format)
+
+		# dff = df.head(n = slider)[['gene', 'stat', 'logfc', 'pval', 'qval']] # update with your own logic
+		dff = df.head(n = slider)
+
+		return generate_table(dff)
+
+# @app2.callback(
+# 	Output('leaf-table2', 'children'),
+# 	[Input('leaf-slider2', 'value'),
+# 	Input('leaf-branches2', 'value'),
+# 	Input('precomp-dataset', 'value')])
+
+# def update_table(slider, branch, dataset):
+
+# 	use_this_table = ''
+
+# 	find_table = glob.glob('/stream_web/precomputed/%s/STREAM_result/Transition_Genes/*.tsv' % dataset)
+# 	for table in find_table:
+# 		if branch in table:
+# 			use_this_table = table
+# 			break
+
+# 	if len(use_this_table) > 0:
+
+# 		df = pd.read_table(use_this_table).fillna('')
+# 		df.columns = ['gene','stat','diff','pval','qval']
+
+# 		mapper =  {'stat': '{0:.2f}',
+# 		           'diff': '{0:.2f}',
+# 		           'pval': '{:.2g}',
+# 		           'qval': '{:.2g}'}
+# 		for key, value in mapper.items():
+# 			df[key] = df[key].apply(value.format)
+
+# 		dff = df.head(n = slider)[['gene', 'stat', 'diff', 'pval', 'qval']] # update with your own logic
+
+# 		return generate_table(dff)
+
+# DOWNLOAD PORTION
 
 @app.callback(
 	Output('download-container', 'style'),
