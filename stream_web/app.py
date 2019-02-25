@@ -6207,17 +6207,19 @@ def update_table(slider, branch, figure, pathname):
 	if len(use_this_table) > 0:
 
 		df = pd.read_table(use_this_table).fillna('')
-		# df.columns = ['gene','stat','logfc','pval','qval']
+		
+		pvals = [x for x in df.columns if 'pvalue' in x]
 
-		# mapper =  {'stat': '{0:.2f}',
-		#            'logfc': '{0:.2f}',
-		#            'pval': '{:.2g}',
-		#            'qval': '{:.2g}'}
-		# for key, value in mapper.items():
-		# 	df[key] = df[key].apply(value.format)
+		mapper =  {'zscore': '{0:.2f}',
+		           'H_statistic': '{0:.2f}'}
 
-		# dff = df.head(n = slider)[['gene', 'stat', 'logfc', 'pval', 'qval']] # update with your own logic
-		dff = df.head(n = slider)
+		for i in pvals:
+			mapper[i] = '{:.2g}'
+
+		for key, value in mapper.items():
+			df[key] = df[key].apply(value.format)
+
+		dff = df.head(n = slider)#[['gene', 'stat', 'diff', 'pval', 'qval']] # update with your own logic
 
 		return generate_table(dff)
 
