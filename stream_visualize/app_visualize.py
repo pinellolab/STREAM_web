@@ -26,11 +26,16 @@ import csv
 import time
 import zipfile
 
-path_to_zip_file = sys.argv[-1]
+# argument for stream folder
+path_to_file = sys.argv[-1]
 
-zip_ref = zipfile.ZipFile(path_to_zip_file, 'r')
-zip_ref.extractall('./unzipped_data/')
-zip_ref.close()
+if path_to_file.endswith('.zip'):
+	zip_ref = zipfile.ZipFile(path_to_file, 'r')
+	zip_ref.extractall('./unzipped_data/')
+	zip_ref.close()
+else:
+	print('cp -R %s unzipped_data/stream_result' % path_to_file)
+	os.system('cp -R %s unzipped_data/stream_result' % path_to_file)
 
 #Import some other useful functions
 def generate_table(dataframe, max_rows = 100):
