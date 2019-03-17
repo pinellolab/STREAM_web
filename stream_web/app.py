@@ -24,6 +24,7 @@ import json
 #import cPickle as cp
 import csv
 import time
+import zipfile
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 
@@ -98,19 +99,45 @@ app.scripts.config.serve_locally = True
 
 app2 = Dash_responsive(name = 'stream-app-precomputed', server = server, url_base_pathname = '/precomputed/', csrf_protect=False)
 
+app2.css.config.serve_locally = True
+app2.scripts.config.serve_locally = True
+
 app.server.config['UPLOADS_FOLDER']='/tmp/UPLOADS_FOLDER'
 app.server.config['RESULTS_FOLDER']='/tmp/RESULTS_FOLDER'
+app.server.config['VISUALIZE_FOLDER']='/tmp/VISUALIZE_FOLDER'
 app.server.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024 #200 Mb max
 
+# app2.server.config['UPLOADS_FOLDER']='/tmp/UPLOADS_FOLDER'
+# app2.server.config['RESULTS_FOLDER']='/tmp/RESULTS_FOLDER'
+# app2.server.config['VISUALIZE_FOLDER']='/tmp/VISUALIZE_FOLDER'
+# app2.server.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024 #200 Mb max
 
 @app.server.route('/static/<path:path>')
 def static_file(path):
     static_folder = os.path.join(os.getcwd(), 'static')
     return send_from_directory(static_folder, path)
 
+# @app2.server.route('/static/<path:path>')
+# def static_file(path):
+#     static_folder = os.path.join(os.getcwd(), 'static')
+#     return send_from_directory(static_folder, path)
+
 @server.route('/help')
 def help():
 	return render_template('help.html')
+
+# @app2.server.route("/static/<path:path>")@app.server.route('/static/<path:path>')
+# def static_file(path):
+#     static_folder = os.path.join(os.getcwd(), 'static')
+#     return send_from_directory(static_folder, path)
+
+# def download(path):
+#     static_folder = os.path.join(os.getcwd(), 'static')
+#     return send_from_directory(static_folder, path)
+
+# @server.route('/help')
+# def help():
+# 	return render_template('help.html')
 
 @server.route('/')
 def index():
@@ -118,12 +145,16 @@ def index():
 
 	UPLOADS_FOLDER = os.path.join(app.server.config['UPLOADS_FOLDER'], newpath)
 	RESULTS_FOLDER = os.path.join(app.server.config['RESULTS_FOLDER'], newpath)
+	# VISUALIZE_FOLDER = os.path.join(app.server.config['VISUALIZE_FOLDER'], newpath)
 
 	if not os.path.exists(UPLOADS_FOLDER):
 		os.makedirs(UPLOADS_FOLDER)
 
 	if not os.path.exists(RESULTS_FOLDER):
 		os.makedirs(RESULTS_FOLDER)
+
+	# if not os.path.exists(VISUALIZE_FOLDER):
+	# 	os.makedirs(VISUALIZE_FOLDER)
 
 	param_dict = {'compute-clicks':0, 'sg-clicks':0, 'discovery-clicks':0, 'correlation-clicks':0, 'leaf-clicks':0, 'starting-nodes':['S0'],
 	'sg-genes':['False'], 'discovery-genes':['False'], 'correlation-genes':['False'], 'leaf-genes':['False'],'sg-gene':'False', 'discovery-gene':'False', 'correlation-gene':'False', 'leaf-gene':'False',
@@ -135,6 +166,18 @@ def index():
 		json_string = json.dumps(param_dict)
 		f.write(json_string + '\n')
 
+	# UPLOADS_FOLDER = os.path.join(app2.server.config['UPLOADS_FOLDER'], newpath)
+	# RESULTS_FOLDER = os.path.join(app2.server.config['RESULTS_FOLDER'], newpath)
+	# VISUALIZE_FOLDER = os.path.join(app2.server.config['VISUALIZE_FOLDER'], newpath)
+
+	# if not os.path.exists(UPLOADS_FOLDER):
+	# 	os.makedirs(UPLOADS_FOLDER)
+
+	# if not os.path.exists(RESULTS_FOLDER):
+	# 	os.makedirs(RESULTS_FOLDER)
+
+	# if not os.path.exists(VISUALIZE_FOLDER):
+	# 	os.makedirs(VISUALIZE_FOLDER)
 
 	return render_template('index.html',newpath=newpath)
 	#return redirect('/compute/' + newpath)
@@ -152,6 +195,73 @@ def generate_table(dataframe, max_rows = 100):
     )
 
 # Upload file
+upload_url2='/uploadajax2'
+
+@app2.server.route(upload_url2, methods = ['POST'])
+def save_files2():
+
+	folder_location = request.referrer
+	UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(folder_location.split('/')[-1])
+
+	upload_files(['STREAM Results .zip'], UPLOADS_FOLDER)
+
+	stream_zip = glob.glob(UPLOADS_FOLDER + '/STREAM_Results_*zip')
+
+	if len(stream_zip) > 0:
+
+		for i in stream_zip:
+
+			new_folder_name = 'DATASET_%s' % str(uuid.uuid4())
+			sb.call('mkdir %s' % new_folder_name, shell = True)
+			zip_ref = zipfile.ZipFile(i, 'r')
+			zip_ref.extractall('/STREAM_web/stream_web/precomputed/%s/' % new_folder_name)
+			zip_ref.close()
+
+			try:
+				sb.call('mkdir /STREAM_web/stream_web/precomputed/%s/stream_report' % new_folder_name, shell = True)
+			except:
+				pass
+
+			sb.call('mv /STREAM_web/stream_web/precomputed/%s/*/*json /STREAM_web/stream_web/precomputed/%s' % (new_folder_name, new_folder_name), shell = True)
+			sb.call('mv /STREAM_web/stream_web/precomputed/%s/*/stream_report/* /STREAM_web/stream_web/precomputed/%s/stream_report' % (new_folder_name, new_folder_name), shell = True)
+			sb.call('rm -rf /STREAM_web/stream_web/precomputed/%s/*/stream_report' % new_folder_name, shell = True)
+
+			try:
+				sb.call('rm -rf /STREAM_web/stream_web/precomputed/%s/__MACOSX' % new_folder_name, shell = True)
+			except:
+				pass
+
+			# json_list = glob.glob('/STREAM_web/stream_web/precomputed/*/*json')
+
+			# for j in  json_list:
+
+			# 	previous_folder_name = j.strip('\n').split('/')[-1].replace('.json','')
+			# 	new_folder_name = j.strip('\n').split('/')[-1].replace('.json','')
+
+			# 	print(previous_folder_name)
+			# 	print(new_folder_name)
+
+			# 	sb.call('mkdir /STREAM_web/stream_web/precomputed/%s' % folder_name, shell = True)
+			# 	sb.call('mv /STREAM_web/stream_web/precomputed/%s.json stream_report /STREAM_web/stream_web/precomputed/%s' % (folder_name, folder_name), shell = True)
+
+		print('Completed upload ...')
+
+		return 'Completed upload ...'
+
+	else:
+
+		wrong_files = glob.glob(UPLOADS_FOLDER + '/STREAM_Results_*')
+		print(wrong_files)
+
+		for i in wrong_files:
+
+			sb.call('rm %s' % (i), shell = True)
+
+		print('Upload Failed. Please upload .zip file.')
+
+		return 'Upload Failed. Please upload .zip file.'
+
+
 upload_url1='/uploadajax1'
 
 @app.server.route(upload_url1, methods = ['POST'])
@@ -348,20 +458,81 @@ app2.layout = html.Div([
 
 	html.Hr(),
 
-	html.H3('Choose Precomputed Data Set'),
+	html.Div(
 
-	dcc.Dropdown(
-		id = 'precomp-dataset',
-	    options=[
-	        {'label': 'Nestorowa, S. et al. 2016', 'value': 'Nestorowa'},
-	    ],
-	    value = 'Nestorowa'
-	),
+		id = 'precomputed-container1',
+		children = [
 
-	html.Label(id = 'title', children = ''),
-	html.Label(id = 'description', children = ''),
-	html.Label(id = 'startingnode', children = ''),
-	html.Label(id = 'commandline', children = ''),
+		html.Div(
+
+			id = 'precomputed-container2',
+			children = [
+
+			html.H3('Choose Loaded Data Set'),
+
+			dcc.Dropdown(
+				id = 'precomp-dataset',
+			    options=[
+			        {'label': 'Nestorowa, S. et al. 2016', 'value': 'Nestorowa'},
+			    ],
+			    value = 'Nestorowa'
+			),
+
+			html.Label(id = 'title', children = ''),
+			html.Label(id = 'description', children = ''),
+			html.Label(id = 'startingnode', children = ''),
+			html.Label(id = 'commandline', children = ''),
+
+			], className = 'six columns'),
+
+		html.Div(
+
+			id = 'upload-container',
+			children = [
+
+			html.H3('Upload Personal Data'),
+
+			# dcc.Upload([
+		 #        'Drag and Drop or ',
+		 #        html.A('Select a File')
+		 #    ], style={
+		 #        'width': '100%',
+		 #        'height': '60px',
+		 #        'lineHeight': '60px',
+		 #        'borderWidth': '1px',
+		 #        'borderStyle': 'dashed',
+		 #        'borderRadius': '5px',
+		 #        'textAlign': 'center'
+		 #    })
+
+			FilesUpload(
+		        id='upload-files',
+		        label = 'tmp1',
+		        uploadUrl=upload_url2,
+			    ),
+
+			html.Hr(),
+
+			html.Button(id = 'visualize-data', children = 'Visualize STREAM Results', n_clicks = 0),
+
+			], className = 'six columns'),
+
+		], className = 'row'),
+
+	# html.H3('Choose Precomputed Data Set'),
+
+	# dcc.Dropdown(
+	# 	id = 'precomp-dataset',
+	#     options=[
+	#         {'label': 'Nestorowa, S. et al. 2016', 'value': 'Nestorowa'},
+	#     ],
+	#     value = 'Nestorowa'
+	# ),
+
+	# html.Label(id = 'title', children = ''),
+	# html.Label(id = 'description', children = ''),
+	# html.Label(id = 'startingnode', children = ''),
+	# html.Label(id = 'commandline', children = ''),
 
 	html.Br(),
 	html.Hr(),
@@ -671,7 +842,87 @@ app2.layout = html.Div([
 
 			], className = 'row'),
 
-		])
+		]),
+
+		html.Hr(),
+
+		html.H3('Visualize Leaf Genes'),
+
+		html.Button(id = 'leaf-plot-button2', children = '(+) Show', n_clicks = 0),
+
+		html.Div(
+			id = 'leaf-container2',
+			children = [
+
+			html.Br(),
+
+			html.Div(
+
+				id = 'leaf-plot-container2',
+				children = [
+
+				html.Div([
+
+					html.Label('Branch for Transition Gene Analysis', style = {'font-weight':'bold', 'padding-right':'10px'}),
+			        dcc.Dropdown(
+							id = 'leaf-branches2',
+						    options=[
+						        {'label': 'Choose branch!', 'value': 'False'}
+						    ],
+						    value = 'False'
+						),
+
+			        html.Br(),
+
+					html.Label('Number of Genes', style = {'font-weight':'bold', 'padding-right':'10px'}),
+			        dcc.Slider(
+				        id='leaf-slider2',
+				        min=0,
+				        max=50,
+				        value=10,
+				        step=1
+			        ),
+
+			        html.Br(),
+
+					html.Div(id = 'leaf-table2', style = {'font-family': 'courier', 'align':'center'}),
+
+					], className = 'five columns'),
+
+
+				html.Div([
+
+					html.Label('Gene', style = {'font-weight':'bold', 'padding-right':'10px'}),
+					dcc.Dropdown(
+							id = 'leaf-gene2',
+						    options=[
+						        {'label': 'Choose gene!', 'value': 'False'}
+						    ],
+						    value = 'False'
+						),
+
+					html.H4('2D Subway Map'),
+					dcc.Graph(id='2d-subway-leaf2', animate=False),
+
+					html.H4('Stream Plot'),
+					html.Img(id = 'leaf-plot2', src = None, width = '90%', style = {'align':'middle'}),
+
+					], className = 'seven columns'),
+
+				], className = 'row'),
+
+		]),
+
+	html.Div(id = 'buffer1', style = {'align':'none'}),
+	html.Div(id = 'buffer2', style = {'align':'none'}),
+	html.Div(id = 'buffer3', style = {'align':'none'}),
+	html.Div(id = 'buffer4', style = {'align':'none'}),
+	html.Div(id = 'buffer5', style = {'align':'none'}),
+	html.Div(id = 'buffer6', style = {'align':'none'}),
+	html.Div(id = 'buffer7', style = {'align':'none'}),
+	html.Div(id = 'buffer8', style = {'align':'none'}),
+	html.Div(id = 'buffer9', style = {'align':'none'}),
+	html.Div(id = 'buffer10', style = {'align':'none'})
 
 	])
 
@@ -726,7 +977,7 @@ app.layout = html.Div([
 		], style = {'display':'none'}),
 
 	html.Img(src='data:image/png;base64,{}'.format(stream_logo_image), width = '50%'),
-	html.H2('Single-cell Trajectory Reconstruction Exploration And Mapping!!!12'),
+	html.H2('Single-cell Trajectory Reconstruction Exploration And Mapping'),
 
 	html.Hr(),
 
@@ -1579,18 +1830,42 @@ app.layout = html.Div([
 # Precomputed folders
 @app2.callback(
     Output('precomp-dataset', 'options'),
-    [Input('url2', 'pathname')])
+    [Input('visualize-data','n_clicks'),
+    Input('url2', 'pathname')])
 
-def num_clicks_compute(pathname):
+def num_clicks_compute(n_clicks, pathname):
 
-	json_list = glob.glob('/stream_web/precomputed/*/*json')
+	json_list = glob.glob('/STREAM_web/stream_web/precomputed/*/*json')
+
+	print('---------------------------------------------------')
+	print(json_list)
 
 	dataset_list = []
 	for json_entry in json_list:
 		data = json.load(open(json_entry))
-		dataset_list.append([data['title'], json_entry.split('/')[-1].replace('.json', '')])
+		dataset_list.append([data['title'], json_entry.split('/')[-2]])
+
+	print(dataset_list)
 
 	return [{'label': i[0], 'value': i[1]} for i in dataset_list]
+
+@app2.callback(
+    Output('precomp-dataset', 'value'),
+    [Input('precomp-dataset', 'options'),
+    Input('url2', 'pathname')])
+
+def num_clicks_compute(options, pathname):
+
+	json_list = glob.glob('/STREAM_web/stream_web/precomputed/*/*json')
+
+	dataset_list = []
+	for json_entry in json_list:
+		data = json.load(open(json_entry))
+		dataset_list.append([data['title'], json_entry.split('/')[-2]])
+
+	print('---------------------------------------------------')
+	print(dataset_list)
+	return dataset_list[0][1]
 
 @app2.callback(
     Output('title', 'children'),
@@ -1598,8 +1873,8 @@ def num_clicks_compute(pathname):
 
 def num_clicks_compute(dataset):
 
-	json_entry = '/stream_web/precomputed/%s/%s.json' % (dataset, dataset)
-	data = json.load(open(json_entry))
+	json_entry = glob.glob('/STREAM_web/stream_web/precomputed/%s/*.json' % (dataset))
+	data = json.load(open(json_entry[0]))
 
 	return 'Title: ' + data['title']
 
@@ -1609,8 +1884,8 @@ def num_clicks_compute(dataset):
 
 def num_clicks_compute(dataset):
 
-	json_entry = '/stream_web/precomputed/%s/%s.json' % (dataset, dataset)
-	data = json.load(open(json_entry))
+	json_entry = glob.glob('/STREAM_web/stream_web/precomputed/%s/*.json' % (dataset))
+	data = json.load(open(json_entry[0]))
 
 	return 'Description: ' + data['description']
 
@@ -1620,8 +1895,8 @@ def num_clicks_compute(dataset):
 
 def num_clicks_compute(dataset):
 
-	json_entry = '/stream_web/precomputed/%s/%s.json' % (dataset, dataset)
-	data = json.load(open(json_entry))
+	json_entry = glob.glob('/STREAM_web/stream_web/precomputed/%s/*.json' % (dataset))
+	data = json.load(open(json_entry[0]))
 
 	return 'Starting Node: ' + data['starting_node']
 
@@ -1631,8 +1906,8 @@ def num_clicks_compute(dataset):
 
 def num_clicks_compute(dataset):
 
-	json_entry = '/stream_web/precomputed/%s/%s.json' % (dataset, dataset)
-	data = json.load(open(json_entry))
+	json_entry = glob.glob('/STREAM_web/stream_web/precomputed/%s/*.json' % (dataset))
+	data = json.load(open(json_entry[0]))
 
 	return 'Command Used: ' + data['command_used']
 
@@ -1644,6 +1919,16 @@ def num_clicks_compute(dataset):
 def update_input_files(pathname):
 
 	file_names = ['Data Matrix', 'Cell Labels', 'Cell Label Colors']
+
+	return ','.join(file_names)
+
+@app2.callback(
+    Output('upload-files', 'label'),
+    [Input('url2', 'pathname')])
+
+def update_input_files(pathname):
+
+	file_names = ['STREAM Results .zip']
 
 	return ','.join(file_names)
 
@@ -2064,7 +2349,7 @@ def update_container(n_clicks, segmentation_container, pathname):
 
 def update_container(dataset, stream_plot_src, pathname, root):
 
-	rainbow_plot = '/stream_web/precomputed/%s/STREAM_result/%s/stream_plot.png' % (dataset, root)
+	rainbow_plot = '/STREAM_web/stream_web/precomputed/%s/stream_report/%s/stream_plot.png' % (dataset, root)
 	rainbow_plot_image = base64.b64encode(open(rainbow_plot, 'rb').read()).decode('ascii')
 
 	if 'data:image/png;base64,{}'.format(rainbow_plot_image) == stream_plot_src:
@@ -2356,10 +2641,10 @@ def compute_trajectories(dataset):
 
 	try:
 
-		cell_label = glob.glob('/stream_web/precomputed/%s/cell_label.tsv.gz*' % dataset)
-		cell_label_colors = glob.glob('/stream_web/precomputed/%s/cell_label_color.tsv.gz*' % dataset)
+		cell_label = glob.glob('/STREAM_web/stream_web/precomputed/%s/cell_label.tsv.gz*' % dataset)
+		cell_label_colors = glob.glob('/STREAM_web/stream_web/precomputed/%s/cell_label_color.tsv.gz*' % dataset)
 
-		edges = '/stream_web/precomputed/%s/STREAM_result/edges.tsv' % dataset
+		edges = '/STREAM_web/stream_web/precomputed/%s/stream_report/edges.tsv' % dataset
 		edge_list = []
 
 		with open(edges, 'r') as f:
@@ -2398,9 +2683,9 @@ def compute_trajectories(dataset):
 		elif len(cell_label_list) > 0 and len(cell_label_colors_dict) == 0:
 			color_plot = 0.5
 
-		cell_coords = '/stream_web/precomputed/%s/STREAM_result/coord_cells.csv' % dataset
-		coord_states = '/stream_web/precomputed/%s/STREAM_result/coord_states.csv' % dataset
-		path_coords = glob.glob('/stream_web/precomputed/%s/STREAM_result/coord_curve*csv' % dataset)
+		cell_coords = '/STREAM_web/stream_web/precomputed/%s/stream_report/coord_cells.csv' % dataset
+		coord_states = '/STREAM_web/stream_web/precomputed/%s/stream_report/coord_states.csv' % dataset
+		path_coords = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/coord_curve*csv' % dataset)
 
 		path_coords_reordered = []
 		for e in edge_list:
@@ -2737,147 +3022,147 @@ def compute_trajectories(dataset):
 
 	traces = []
 
-	try:
+	# try:
 
-		cell_label = glob.glob('/stream_web/precomputed/%s/cell_label.tsv.gz*' % dataset)
-		cell_label_colors = glob.glob('/stream_web/precomputed/%s/cell_label_color.tsv.gz*' % dataset)
+	cell_label = glob.glob('/STREAM_web/stream_web/precomputed/%s/cell_label.tsv.gz*' % dataset)
+	cell_label_colors = glob.glob('/STREAM_web/stream_web/precomputed/%s/cell_label_color.tsv.gz*' % dataset)
 
-		cell_label_list = []
-		if len(cell_label) > 0:
-			if cell_label[0].endswith('.gz'):
-				with gzip.open(cell_label[0], 'r') as f:
-					for line in f:
-						cell_label_list.append(line.strip())
-			else:
-				with open(cell_label[0], 'r') as f:
-					for line in f:
-						cell_label_list.append(line.strip())
-
-		cell_label_colors_dict = {}
-		if len(cell_label_colors) > 0:
-			if cell_label_colors[0].endswith('.gz'):
-				with gzip.open(cell_label_colors[0], 'r') as f:
-					for line in f:
-						line = line.strip().split('\t')
-						cell_label_colors_dict[str(line[1])] = str(line[0])
-
-			else:
-				with open(cell_label_colors[0], 'r') as f:
-					for line in f:
-						line = line.strip().split('\t')
-						cell_label_colors_dict[str(line[1])] = str(line[0])
-
-		color_plot = 0
-		if len(cell_label_list) > 0 and len(cell_label_colors_dict) > 0:
-			color_plot = 1
-		elif len(cell_label_list) > 0 and len(cell_label_colors_dict) == 0:
-			color_plot = 0.5
-
-		cell_coords = '/stream_web/precomputed/%s/STREAM_result/flat_tree_coord_cells.csv' % dataset
-		nodes = '/stream_web/precomputed/%s/STREAM_result/nodes.tsv' % dataset
-		edges = '/stream_web/precomputed/%s/STREAM_result/edges.tsv' % dataset
-
-		node_list = {}
-		edge_list = []
-
-		with open(nodes, 'r') as f:
-			next(f)
-			for line in f:
-				line = line.strip().split('\t')
-				node_list[str(line[0])] = [float(line[1]), float(line[2])]
-
-		with open(edges, 'r') as f:
-			for line in f:
-				line = line.strip().split('\t')
-				edge_list.append(sorted([str(line[0]), str(line[1])]))
-
-		path_coords = {}
-		path_coords_reordered = []
-		for edge in edge_list:
-			edge_name = '-'.join(map(str, edge))
-			path_coords_reordered.append(edge_name)
-			x_values = [node_list[edge[0]][0], node_list[edge[1]][0]]
-			y_values = [node_list[edge[0]][1], node_list[edge[1]][1]]
-			path_coords[edge_name] = [x_values, y_values]
-
-		for path in path_coords_reordered:
-			path_name = path
-			x_p = path_coords[path][0]
-			y_p = path_coords[path][1]
-
-			text_tmp = [path.split('-')[0], path.split('-')[1]]
-
-			traces.append(
-
-				go.Scatter(
-						    x=x_p, y=y_p,
-						    text = text_tmp,
-						    mode = 'lines+markers+text',
-						    opacity = 0.7,
-						    name = path_name,
-						    line=dict(
-						        width=7
-						    ),
-						    textfont=dict(
-								size = 20
-							)
-						)
-				)
-
-		x = []
-		y = []
-		c = []
-		labels = []
-		with open(cell_coords, 'r') as f:
-			next(f)
-			for line in f:
-				line = line.strip().split('\t')
-				c.append(str(line[1]))
-				x.append(float(line[2]))
-				y.append(float(line[3]))
-				try:
-					labels.append(cell_label_colors_dict[str(line[1])])
-				except:
-					pass
-
-		cell_types = {}
-		if color_plot == 0:
-			cell_types['Single Cells'] = [x, y, 'unlabeled', 'grey']
-		elif color_plot == 0.5:
-			for label, x_c, y_c, color in zip(labels, x, y, c):
-				if label not in cell_types:
-					cell_types[label] = [[],[],[],[]]
-				cell_types[label][0].append(x_c)
-				cell_types[label][1].append(y_c)
-				cell_types[label][2].append(label)
-				cell_types[label][3].append('grey')
+	cell_label_list = []
+	if len(cell_label) > 0:
+		if cell_label[0].endswith('.gz'):
+			with gzip.open(cell_label[0], 'r') as f:
+				for line in f:
+					cell_label_list.append(line.strip())
 		else:
-			for label, x_c, y_c, color in zip(labels, x, y, c):
-				if label not in cell_types:
-					cell_types[label] = [[],[],[],[]]
-				cell_types[label][0].append(x_c)
-				cell_types[label][1].append(y_c)
-				cell_types[label][2].append(label)
-				cell_types[label][3].append(color)
+			with open(cell_label[0], 'r') as f:
+				for line in f:
+					cell_label_list.append(line.strip())
 
-		for label in cell_types:
-			traces.append(
+	cell_label_colors_dict = {}
+	if len(cell_label_colors) > 0:
+		if cell_label_colors[0].endswith('.gz'):
+			with gzip.open(cell_label_colors[0], 'r') as f:
+				for line in f:
+					line = line.strip().split('\t')
+					cell_label_colors_dict[str(line[1])] = str(line[0])
 
-				go.Scatter(
-						x=cell_types[label][0],
-						y=cell_types[label][1],
-						mode='markers',
-						opacity = 0.6,
-						name = label,
-						text = cell_types[label][2],
-						marker = dict(
-							size = 6,
-							color = cell_types[label][3]
-							)
+		else:
+			with open(cell_label_colors[0], 'r') as f:
+				for line in f:
+					line = line.strip().split('\t')
+					cell_label_colors_dict[str(line[1])] = str(line[0])
+
+	color_plot = 0
+	if len(cell_label_list) > 0 and len(cell_label_colors_dict) > 0:
+		color_plot = 1
+	elif len(cell_label_list) > 0 and len(cell_label_colors_dict) == 0:
+		color_plot = 0.5
+
+	cell_coords = '/STREAM_web/stream_web/precomputed/%s/stream_report/flat_tree_coord_cells.csv' % dataset
+	nodes = '/STREAM_web/stream_web/precomputed/%s/stream_report/nodes.csv' % dataset
+	edges = '/STREAM_web/stream_web/precomputed/%s/stream_report/edges.tsv' % dataset
+
+	node_list = {}
+	edge_list = []
+
+	with open(nodes, 'r') as f:
+		next(f)
+		for line in f:
+			line = line.strip().split('\t')
+			node_list[str(line[0])] = [float(line[1]), float(line[2])]
+
+	with open(edges, 'r') as f:
+		for line in f:
+			line = line.strip().split('\t')
+			edge_list.append(sorted([str(line[0]), str(line[1])]))
+
+	path_coords = {}
+	path_coords_reordered = []
+	for edge in edge_list:
+		edge_name = '-'.join(map(str, edge))
+		path_coords_reordered.append(edge_name)
+		x_values = [node_list[edge[0]][0], node_list[edge[1]][0]]
+		y_values = [node_list[edge[0]][1], node_list[edge[1]][1]]
+		path_coords[edge_name] = [x_values, y_values]
+
+	for path in path_coords_reordered:
+		path_name = path
+		x_p = path_coords[path][0]
+		y_p = path_coords[path][1]
+
+		text_tmp = [path.split('-')[0], path.split('-')[1]]
+
+		traces.append(
+
+			go.Scatter(
+					    x=x_p, y=y_p,
+					    text = text_tmp,
+					    mode = 'lines+markers+text',
+					    opacity = 0.7,
+					    name = path_name,
+					    line=dict(
+					        width=7
+					    ),
+					    textfont=dict(
+							size = 20
 						)
 					)
-	except:
-		pass
+			)
+
+	x = []
+	y = []
+	c = []
+	labels = []
+	with open(cell_coords, 'r') as f:
+		next(f)
+		for line in f:
+			line = line.strip().split('\t')
+			c.append(str(line[1]))
+			x.append(float(line[2]))
+			y.append(float(line[3]))
+			try:
+				labels.append(cell_label_colors_dict[str(line[1])])
+			except:
+				pass
+
+	cell_types = {}
+	if color_plot == 0:
+		cell_types['Single Cells'] = [x, y, 'unlabeled', 'grey']
+	elif color_plot == 0.5:
+		for label, x_c, y_c, color in zip(labels, x, y, c):
+			if label not in cell_types:
+				cell_types[label] = [[],[],[],[]]
+			cell_types[label][0].append(x_c)
+			cell_types[label][1].append(y_c)
+			cell_types[label][2].append(label)
+			cell_types[label][3].append('grey')
+	else:
+		for label, x_c, y_c, color in zip(labels, x, y, c):
+			if label not in cell_types:
+				cell_types[label] = [[],[],[],[]]
+			cell_types[label][0].append(x_c)
+			cell_types[label][1].append(y_c)
+			cell_types[label][2].append(label)
+			cell_types[label][3].append(color)
+
+	for label in cell_types:
+		traces.append(
+
+			go.Scatter(
+					x=cell_types[label][0],
+					y=cell_types[label][1],
+					mode='markers',
+					opacity = 0.6,
+					name = label,
+					text = cell_types[label][2],
+					marker = dict(
+						size = 6,
+						color = cell_types[label][3]
+						)
+					)
+				)
+	# except:
+	# 	pass
 
 	return {
         'data': traces,
@@ -2912,7 +3197,7 @@ def num_clicks_compute(fig_update, pathname):
 
 def num_clicks_compute(dataset):
 
-	node_list_tmp = glob.glob('/stream_web/precomputed/%s/STREAM_result/S*' % dataset)
+	node_list_tmp = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/S*' % dataset)
 
 	node_list = [x.split('/')[-1] for x in node_list_tmp if len(x.split('/')[-1]) == 2]
 
@@ -2924,8 +3209,8 @@ def num_clicks_compute(dataset):
 
 def num_clicks_compute(dataset):
 
-	json_entry = '/stream_web/precomputed/%s/%s.json' % (dataset, dataset)
-	data = json.load(open(json_entry))
+	json_entry = glob.glob('/STREAM_web/stream_web/precomputed/%s/*.json' % (dataset))
+	data = json.load(open(json_entry[0]))
 
 	return data['starting_node']
 
@@ -3111,11 +3396,11 @@ def num_clicks_compute(root, dataset):
 
 	try:
 
-		cell_coords = '/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_cells.csv' % (dataset, root)
-		path_coords = glob.glob('/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_line*csv' % (dataset, root))
+		cell_coords = '/STREAM_web/stream_web/precomputed/%s/stream_report/%s/subway_coord_cells.csv' % (dataset, root)
+		path_coords = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/%s/subway_coord_line*csv' % (dataset, root))
 
-		cell_label = glob.glob('/stream_web/precomputed/%s/cell_label.tsv.gz' % dataset)
-		cell_label_colors = glob.glob('/stream_web/precomputed/%s/cell_label_color.tsv.gz' % dataset)
+		cell_label = glob.glob('/STREAM_web/stream_web/precomputed/%s/cell_label.tsv.gz' % dataset)
+		cell_label_colors = glob.glob('/STREAM_web/stream_web/precomputed/%s/cell_label_color.tsv.gz' % dataset)
 
 		cell_label_list = []
 		if len(cell_label) > 0:
@@ -3148,7 +3433,7 @@ def num_clicks_compute(root, dataset):
 		elif len(cell_label_list) > 0 and len(cell_label_colors_dict) == 0:
 			color_plot = 0.5
 
-		edges = '/stream_web/precomputed/%s/STREAM_result/edges.tsv' % dataset
+		edges = '/STREAM_web/stream_web/precomputed/%s/stream_report/edges.tsv' % dataset
 		edge_list = []
 
 		with open(edges, 'r') as f:
@@ -3301,7 +3586,7 @@ def num_clicks_compute(root, dataset):
 
 	try:
 
-		rainbow_plot = '/stream_web/precomputed/%s/STREAM_result/%s/stream_plot.png' % (dataset, root)
+		rainbow_plot = '/STREAM_web/stream_web/precomputed/%s/stream_report/%s/stream_plot.png' % (dataset, root)
 		rainbow_plot_image = base64.b64encode(open(rainbow_plot, 'rb').read()).decode('ascii')
 
 		return 'data:image/png;base64,{}'.format(rainbow_plot_image)
@@ -3378,11 +3663,24 @@ def num_clicks_compute(fig_update, pathname):
 
 def num_clicks_compute(dataset):
 
-	gene_list_tmp = glob.glob('/stream_web/precomputed/%s/STREAM_result/S0/stream_plot_*png' % dataset)
+	gene_list_tmp = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/S0/stream_plot_*png' % dataset)
 
 	gene_list = [x.split('_')[-1].replace('.png', '') for x in gene_list_tmp]
 
-	return [{'label': i, 'value': i} for i in gene_list]
+	gene_conversion_dict = {}
+	with open('/STREAM_web/stream_web/precomputed/%s/stream_report/gene_conversion.tsv' % dataset, 'r') as f:
+		next(f)
+		for line in f:
+			orig, new = line.split('\t')
+			gene_conversion_dict[new.strip('\n')] = orig.strip('\n')
+
+	return [{'label': gene_conversion_dict[i], 'value': i} for i in gene_list if i != 'False']
+
+	# gene_list_tmp = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/S0/stream_plot_*png' % dataset)
+
+	# gene_list = [x.split('_')[-1].replace('.png', '') for x in gene_list_tmp]
+
+	# return [{'label': i, 'value': i} for i in gene_list]
 
 @app.callback(
     Output('sg-gene', 'value'),
@@ -3813,14 +4111,14 @@ def compute_trajectories(dataset, gene, root):
 
 	traces = []
 
-	cell_coords = '/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_cells.csv' % (dataset, root)
-	path_coords = glob.glob('/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_line*csv' % (dataset, root))
-	gene_coords = '/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_%s.csv' % (dataset, root, gene)
+	cell_coords = '/STREAM_web/stream_web/precomputed/%s/stream_report/%s/subway_coord_cells.csv' % (dataset, root)
+	path_coords = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/%s/subway_coord_line*csv' % (dataset, root))
+	gene_coords = '/STREAM_web/stream_web/precomputed/%s/stream_report/%s/subway_coord_%s.csv' % (dataset, root, gene)
 
-	cell_label = '/stream_web/precomputed/%s/cell_label.tsv.gz' % dataset
-	cell_label_colors = '/stream_web/precomputed/%s/cell_label_color.tsv.gz' % dataset
+	cell_label = '/STREAM_web/stream_web/precomputed/%s/cell_label.tsv.gz' % dataset
+	cell_label_colors = '/STREAM_web/stream_web/precomputed/%s/cell_label_color.tsv.gz' % dataset
 
-	edges = '/stream_web/precomputed/%s/STREAM_result/edges.tsv' % dataset
+	edges = '/STREAM_web/stream_web/precomputed/%s/stream_report/edges.tsv' % dataset
 	edge_list = []
 
 	with open(edges, 'r') as f:
@@ -3966,7 +4264,7 @@ def num_clicks_compute(dataset, gene, root):
 
 	try:
 
-		discovery_plot = '/stream_web/precomputed/%s/STREAM_result/%s/stream_plot_%s.png' % (dataset, root, gene)
+		discovery_plot = '/STREAM_web/stream_web/precomputed/%s/stream_report/%s/stream_plot_%s.png' % (dataset, root, gene)
 		discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read()).decode('ascii')
 		return 'data:image/png;base64,{}'.format(discovery_plot_image)
 
@@ -4050,11 +4348,26 @@ def num_clicks_compute(fig_update, pathname):
 
 def num_clicks_compute(dataset):
 
-	gene_list_tmp = glob.glob('/stream_web/precomputed/%s/STREAM_result/S0/stream_plot_*png' % dataset)
+	gene_list_tmp = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/S0/stream_plot_*png' % dataset)
 
 	gene_list = [x.split('_')[-1].replace('.png', '') for x in gene_list_tmp]
 
-	return [{'label': i, 'value': i} for i in gene_list]
+	print(gene_list)
+
+	gene_conversion_dict = {}
+	with open('/STREAM_web/stream_web/precomputed/%s/stream_report/gene_conversion.tsv' % dataset, 'r') as f:
+		next(f)
+		for line in f:
+			orig, new = line.split('\t')
+			gene_conversion_dict[new.strip('\n')] = orig.strip('\n')
+
+	return [{'label': gene_conversion_dict[i], 'value': i} for i in gene_list if i != 'False']
+
+	# gene_list_tmp = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/S0/stream_plot_*png' % dataset)
+
+	# gene_list = [x.split('_')[-1].replace('.png', '') for x in gene_list_tmp]
+
+	# return [{'label': i, 'value': i} for i in gene_list]
 
 @app.callback(
     Output('discovery-container', 'style'),
@@ -4452,14 +4765,14 @@ def compute_trajectories(dataset, root, gene):
 
 	traces = []
 
-	cell_coords = '/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_cells.csv' % (dataset, root)
-	path_coords = glob.glob('/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_line*csv' % (dataset, root))
-	gene_coords = '/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_%s.csv' % (dataset, root, gene)
+	cell_coords = '/STREAM_web/stream_web/precomputed/%s/stream_report/%s/subway_coord_cells.csv' % (dataset, root)
+	path_coords = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/%s/subway_coord_line*csv' % (dataset, root))
+	gene_coords = '/STREAM_web/stream_web/precomputed/%s/stream_report/%s/subway_coord_%s.csv' % (dataset, root, gene)
 
-	cell_label = '/stream_web/precomputed/%s/cell_label.tsv.gz' % dataset
-	cell_label_colors = '/stream_web/precomputed/%s/cell_label_color.tsv.gz' % dataset
+	cell_label = '/STREAM_web/stream_web/precomputed/%s/cell_label.tsv.gz' % dataset
+	cell_label_colors = '/STREAM_web/stream_web/precomputed/%s/cell_label_color.tsv.gz' % dataset
 
-	edges = '/stream_web/precomputed/%s/STREAM_result/edges.tsv' % dataset
+	edges = '/STREAM_web/stream_web/precomputed/%s/stream_report/edges.tsv' % dataset
 	edge_list = []
 
 	with open(edges, 'r') as f:
@@ -4598,7 +4911,7 @@ def num_clicks_compute(root, gene, dataset):
 
 	try:
 
-		discovery_plot = '/stream_web/precomputed/%s/STREAM_result/%s/stream_plot_%s.png' % (dataset, root, gene)
+		discovery_plot = '/STREAM_web/stream_web/precomputed/%s/stream_report/%s/stream_plot_%s.png' % (dataset, root, gene)
 		discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read()).decode('ascii')
 
 		return 'data:image/png;base64,{}'.format(discovery_plot_image)
@@ -4638,9 +4951,12 @@ def num_clicks_compute(fig_update, pathname):
 def num_clicks_compute(dataset):
 
 	combined_branches = []
-	find_tables = glob.glob('/stream_web/precomputed/%s/STREAM_result/DE_Genes/*.tsv' % dataset)
+	find_tables = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/DE_Genes/*.tsv' % dataset)
 	for table in find_tables:
-		branch1 = table.split(' and ')[0].split('genes_')[1]
+		# branch1 = table.split(' and ')[0].split('greater_')[1]
+		# branch2 = table.split(' and ')[1].strip('.tsv')
+
+		branch1 = table.split(' and ')[0].split('_')[-2] + '_' + table.split(' and ')[0].split('_')[-1]
 		branch2 = table.split(' and ')[1].strip('.tsv')
 
 		combined_branch = branch1 + ' and ' + branch2
@@ -4649,6 +4965,19 @@ def num_clicks_compute(dataset):
 			combined_branches.append(combined_branch)
 
 	return [{'label': i, 'value': i} for i in combined_branches]
+
+	# combined_branches = []
+	# find_tables = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/DE_Genes/*.tsv' % dataset)
+	# for table in find_tables:
+	# 	branch1 = table.split(' and ')[0].split('genes_')[1]
+	# 	branch2 = table.split(' and ')[1].strip('.tsv')
+
+	# 	combined_branch = branch1 + ' and ' + branch2
+
+	# 	if combined_branch not in combined_branches:
+	# 		combined_branches.append(combined_branch)
+
+	# return [{'label': i, 'value': i} for i in combined_branches]
 
 @app.callback(
     Output('de-direction', 'options'),
@@ -4751,11 +5080,11 @@ def update_table(slider, branches, direction, dataset):
 		branch2 = branches.split(' and ')[1]
 
 		if direction == branch1:
-			direction_classify = '_up_'
+			direction_classify = '_greater_'
 		elif direction == branch2:
-			direction_classify = '_down_'
+			direction_classify = '_less_'
 
-		find_table = glob.glob('/stream_web/precomputed/%s/STREAM_result/DE_Genes/*.tsv' % dataset)
+		find_table = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/DE_Genes/*.tsv' % dataset)
 		for table in find_table:
 			if (branch1 in table) and (branch2 in table) and (direction_classify in table):
 				use_this_table = table
@@ -4778,6 +5107,42 @@ def update_table(slider, branches, direction, dataset):
 		dff = df.head(n = slider)[['gene', 'z_score', 'diff','pval', 'qval']] # update with your own logic
 
 		return generate_table(dff)
+
+	# use_this_table = ''
+
+	# try:
+
+	# 	branch1 = branches.split(' and ')[0]
+	# 	branch2 = branches.split(' and ')[1]
+
+	# 	if direction == branch1:
+	# 		direction_classify = '_up_'
+	# 	elif direction == branch2:
+	# 		direction_classify = '_down_'
+
+	# 	find_table = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/DE_Genes/*.tsv' % dataset)
+	# 	for table in find_table:
+	# 		if (branch1 in table) and (branch2 in table) and (direction_classify in table):
+	# 			use_this_table = table
+	# 			break
+	# except:
+	# 	pass
+
+	# if len(use_this_table) > 0:
+
+	# 	df = pd.read_table(use_this_table).fillna('')
+	# 	df.columns = ['gene','z_score','U','diff','mean_up','mean_down','pval','qval']
+
+	# 	mapper =  {'z_score': '{0:.2f}',
+	# 	           'diff': '{0:.2f}',
+	# 	           'pval': '{:.2g}',
+	# 	           'qval': '{:.2g}'}
+	# 	for key, value in mapper.items():
+	# 		df[key] = df[key].apply(value.format)
+
+	# 	dff = df.head(n = slider)[['gene', 'z_score', 'diff','pval', 'qval']] # update with your own logic
+
+	# 	return generate_table(dff)
 
 ### GENE CORRELATION
 @app.callback(
@@ -4855,11 +5220,24 @@ def num_clicks_compute(fig_update, pathname):
 
 def num_clicks_compute(dataset):
 
-	gene_list_tmp = glob.glob('/stream_web/precomputed/%s/STREAM_result/S0/stream_plot_*png' % dataset)
+	gene_list_tmp = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/S0/stream_plot_*png' % dataset)
 
 	gene_list = [x.split('_')[-1].replace('.png', '') for x in gene_list_tmp]
 
-	return [{'label': i, 'value': i} for i in gene_list]
+	gene_conversion_dict = {}
+	with open('/STREAM_web/stream_web/precomputed/%s/stream_report/gene_conversion.tsv' % dataset, 'r') as f:
+		next(f)
+		for line in f:
+			orig, new = line.split('\t')
+			gene_conversion_dict[new.strip('\n')] = orig.strip('\n')
+
+	return [{'label': gene_conversion_dict[i], 'value': i} for i in gene_list if i != 'False']
+
+	# gene_list_tmp = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/S0/stream_plot_*png' % dataset)
+
+	# gene_list = [x.split('_')[-1].replace('.png', '') for x in gene_list_tmp]
+
+	# return [{'label': i, 'value': i} for i in gene_list]
 
 @app.callback(
     Output('correlation-container', 'style'),
@@ -5257,14 +5635,14 @@ def compute_trajectories(dataset, root, gene):
 
 	traces = []
 
-	cell_coords = '/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_cells.csv' % (dataset, root)
-	path_coords = glob.glob('/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_line*csv' % (dataset, root))
-	gene_coords = '/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_%s.csv' % (dataset, root, gene)
+	cell_coords = '/STREAM_web/stream_web/precomputed/%s/stream_report/%s/subway_coord_cells.csv' % (dataset, root)
+	path_coords = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/%s/subway_coord_line*csv' % (dataset, root))
+	gene_coords = '/STREAM_web/stream_web/precomputed/%s/stream_report/%s/subway_coord_%s.csv' % (dataset, root, gene)
 
-	cell_label = '/stream_web/precomputed/%s/cell_label.tsv.gz' % dataset
-	cell_label_colors = '/stream_web/precomputed/%s/cell_label_color.tsv.gz' % dataset
+	cell_label = '/STREAM_web/stream_web/precomputed/%s/cell_label.tsv.gz' % dataset
+	cell_label_colors = '/STREAM_web/stream_web/precomputed/%s/cell_label_color.tsv.gz' % dataset
 
-	edges = '/stream_web/precomputed/%s/STREAM_result/edges.tsv' % dataset
+	edges = '/STREAM_web/stream_web/precomputed/%s/stream_report/edges.tsv' % dataset
 	edge_list = []
 
 	with open(edges, 'r') as f:
@@ -5403,7 +5781,7 @@ def num_clicks_compute(root, gene, dataset):
 
 	try:
 
-		discovery_plot = '/stream_web/precomputed/%s/STREAM_result/%s/stream_plot_%s.png' % (dataset, root, gene)
+		discovery_plot = '/STREAM_web/stream_web/precomputed/%s/stream_report/%s/stream_plot_%s.png' % (dataset, root, gene)
 		discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read()).decode('ascii')
 
 		return 'data:image/png;base64,{}'.format(discovery_plot_image)
@@ -5438,14 +5816,24 @@ def num_clicks_compute(fig_update, pathname):
 def num_clicks_compute(dataset):
 
 	branches = []
-	find_tables = glob.glob('/stream_web/precomputed/%s/STREAM_result/Transition_Genes/*.tsv' % dataset)
+	find_tables = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/Transition_Genes/*.tsv' % dataset)
 	for table in find_tables:
-		branch = table.split('_Genes_')[1].strip('.tsv')
+		branch = table.split('_genes_')[1].strip('.tsv')
 
 		if branch not in branches:
 			branches.append(branch)
 
 	return [{'label': i, 'value': i} for i in branches]
+
+	# branches = []
+	# find_tables = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/Transition_Genes/*.tsv' % dataset)
+	# for table in find_tables:
+	# 	branch = table.split('_Genes_')[1].strip('.tsv')
+
+	# 	if branch not in branches:
+	# 		branches.append(branch)
+
+	# return [{'label': i, 'value': i} for i in branches]
 
 @app.callback(
 	Output('correlation-table', 'children'),
@@ -5493,7 +5881,7 @@ def update_table(slider, branch, dataset):
 
 	use_this_table = ''
 
-	find_table = glob.glob('/stream_web/precomputed/%s/STREAM_result/Transition_Genes/*.tsv' % dataset)
+	find_table = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/Transition_Genes/*.tsv' % dataset)
 	for table in find_table:
 		if branch in table:
 			use_this_table = table
@@ -5592,7 +5980,7 @@ def num_clicks_compute(fig_update, pathname):
 
 # def num_clicks_compute(dataset):
 
-# 	gene_list_tmp = glob.glob('/stream_web/precomputed/%s/STREAM_result/S0/stream_plot_*png' % dataset)
+# 	gene_list_tmp = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/S0/stream_plot_*png' % dataset)
 
 # 	gene_list = [x.split('_')[-1].replace('.png', '') for x in gene_list_tmp]
 
@@ -5994,14 +6382,14 @@ def compute_trajectories(pathname, root, gene, n_clicks):
 
 # 	traces = []
 
-# 	cell_coords = '/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_cells.csv' % (dataset, root)
-# 	path_coords = glob.glob('/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_line*csv' % (dataset, root))
-# 	gene_coords = '/stream_web/precomputed/%s/STREAM_result/%s/subway_coord_%s.csv' % (dataset, root, gene)
+# 	cell_coords = '/STREAM_web/stream_web/precomputed/%s/stream_report/%s/subway_coord_cells.csv' % (dataset, root)
+# 	path_coords = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/%s/subway_coord_line*csv' % (dataset, root))
+# 	gene_coords = '/STREAM_web/stream_web/precomputed/%s/stream_report/%s/subway_coord_%s.csv' % (dataset, root, gene)
 
-# 	cell_label = '/stream_web/precomputed/%s/cell_label.tsv.gz' % dataset
-# 	cell_label_colors = '/stream_web/precomputed/%s/cell_label_color.tsv.gz' % dataset
+# 	cell_label = '/STREAM_web/stream_web/precomputed/%s/cell_label.tsv.gz' % dataset
+# 	cell_label_colors = '/STREAM_web/stream_web/precomputed/%s/cell_label_color.tsv.gz' % dataset
 
-# 	edges = '/stream_web/precomputed/%s/STREAM_result/edges.tsv' % dataset
+# 	edges = '/STREAM_web/stream_web/precomputed/%s/stream_report/edges.tsv' % dataset
 # 	edge_list = []
 
 # 	with open(edges, 'r') as f:
@@ -6140,7 +6528,7 @@ def num_clicks_compute(root, gene, pathname):
 
 # 	try:
 
-# 		discovery_plot = '/stream_web/precomputed/%s/STREAM_result/%s/stream_plot_%s.png' % (dataset, root, gene)
+# 		discovery_plot = '/STREAM_web/stream_web/precomputed/%s/stream_report/%s/stream_plot_%s.png' % (dataset, root, gene)
 # 		discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read()).decode('ascii')
 
 # 		return 'data:image/png;base64,{}'.format(discovery_plot_image)
@@ -6175,7 +6563,7 @@ def num_clicks_compute(fig_update, pathname):
 # def num_clicks_compute(dataset):
 
 # 	branches = []
-# 	find_tables = glob.glob('/stream_web/precomputed/%s/STREAM_result/Leaf_Genes/*.tsv' % dataset)
+# 	find_tables = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/Leaf_Genes/*.tsv' % dataset)
 # 	for table in find_tables:
 # 		branch = table.split('_Genes')[1].strip('.tsv')
 
@@ -6233,7 +6621,7 @@ def update_table(slider, branch, figure, pathname):
 
 # 	use_this_table = ''
 
-# 	find_table = glob.glob('/stream_web/precomputed/%s/STREAM_result/Transition_Genes/*.tsv' % dataset)
+# 	find_table = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/Transition_Genes/*.tsv' % dataset)
 # 	for table in find_table:
 # 		if branch in table:
 # 			use_this_table = table
@@ -6419,6 +6807,252 @@ def zip_dir(n_clicks, pathname, title_input, description_input, starting_node):
 # 		full_path = RESULTS_FOLDER + '/' + 'stream-outputs.zip'
 
 # 		return '/dash/urldownload%s' % full_path
+
+# LEAF GENE PART FOR VISUALIZATION
+
+### LEAF GENE PART!!!!!
+@app2.callback(
+	Output('leaf-plot-button2', 'children'),
+	[Input('leaf-plot-button2', 'n_clicks')])
+
+def update_score_params_button(n_clicks):
+
+	if n_clicks%2 != 0:
+		return '(-) Hide'
+	else:
+		return '(-) Show'
+
+@app2.callback(
+	Output('leaf-plot-container2', 'style'),
+	[Input('leaf-plot-button2', 'n_clicks')])
+
+def update_score_params_visual(n_clicks):
+
+	if n_clicks%2 != 0:
+		return {'display': 'block'}
+	else:
+		return {'display': 'none'}
+
+@app2.callback(
+    Output('leaf-gene2', 'options'),
+    [Input('precomp-dataset', 'value'),
+    Input('buffer7', 'style')])
+
+def num_clicks_compute(precomp, buffer):
+
+	gene_list_tmp = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/S0/stream_plot_*png' % precomp)
+
+	gene_list = [x.split('_')[-1].replace('.png', '') for x in gene_list_tmp]
+
+	gene_conversion_dict = {}
+	with open('/STREAM_web/stream_web/precomputed/%s/stream_report/gene_conversion.tsv' % precomp, 'r') as f:
+		next(f)
+		for line in f:
+			orig, new = line.split('\t')
+			gene_conversion_dict[new.strip('\n')] = orig.strip('\n')
+
+	return [{'label': gene_conversion_dict[i], 'value': i} for i in gene_list if i != 'False']
+
+	# return [{'label': i, 'value': i} for i in gene_list]
+
+@app2.callback(
+    Output('2d-subway-leaf2', 'figure'),
+    [Input('precomp-dataset', 'value'),
+    Input('root2', 'value'),
+    Input('leaf-gene2', 'value')])
+
+def compute_trajectories(precomp, root, gene):
+
+	traces = []
+
+	cell_coords = '/STREAM_web/stream_web/precomputed/%s/stream_report/%s/subway_coord_cells.csv' % (precomp, root)
+	path_coords = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/%s/subway_coord_line*csv' % (precomp, root))
+	gene_coords = '/STREAM_web/stream_web/precomputed/%s/stream_report/%s/subway_coord_%s.csv' % (precomp, root, gene)
+
+	cell_label = '/STREAM_web/stream_web/precomputed/%s/stream_report/cell_label.tsv.gz'  % (precomp)
+	cell_label_colors = '/STREAM_web/stream_web/precomputed/%s/stream_report/cell_label_color.tsv.gz'  % (precomp)
+
+	edges = '/STREAM_web/stream_web/precomputed/%s/stream_report/edges.tsv'  % (precomp)
+	edge_list = []
+
+	with open(edges, 'r') as f:
+		for line in f:
+			line = line.strip().split('\t')
+			edge_list.append([str(line[0]), str(line[1])])
+
+	path_coords_reordered = []
+	for e in edge_list:
+		entry = [x for x in path_coords if ((e[0] in x.split('/')[-1]) and (e[1] in x.split('/')[-1]))]
+		path_coords_reordered.append(entry[0])
+
+	for path in path_coords:
+		if path not in path_coords_reordered:
+			path_coords_reordered.append(path)
+
+	traces = []
+	for path in path_coords_reordered:
+		x_p = []
+		y_p = []
+		s1 = path.strip().split('_')[-2]
+		s2 = path.strip().split('_')[-1].strip('.csv')
+		s_3 = [s1, s2]
+		path_name = '-'.join(map(str, s_3))
+		with open(path, 'r') as f:
+			next(f)
+			for line in f:
+				line = line.strip().split('\t')
+				x_p.append(float(line[0]))
+				y_p.append(float(line[1]))
+
+			if len(x_p) == 2:
+				text_tmp = [s1, s2]
+			elif len(x_p) == 4:
+				text_tmp = [s1, None, None, s2]
+			elif len(x_p) == 6:
+				text_tmp = [s1, None, None, None, None, s2]
+
+			traces.append(
+
+				go.Scatter(
+						    x = x_p, y = y_p,
+						    text = text_tmp,
+						    mode = 'lines+markers+text',
+						    opacity = 0.7,
+						    name = path_name,
+						    line=dict(
+						        width = 3,
+						        color = 'grey'
+						    ),
+						    textfont=dict(
+								size = 20
+							)
+						)
+
+				)
+
+	x_c = []
+	y_c = []
+	c = []
+	exp = []
+	exp_scaled = []
+
+	try:
+		with open(gene_coords, 'r') as f:
+			next(f)
+			for line in f:
+				line = line.strip().split('\t')
+				c.append(str(line[0]))
+				x_c.append(float(line[1]))
+				y_c.append(float(line[2]))
+				exp_scaled.append(float(line[3]))
+				# exp_scaled.append(float(line[4]))
+	except:
+		pass
+
+	exp_labels = ['Expression: ' + str(x) for x in exp_scaled]
+
+	traces.append(
+		go.Scatter(
+					x = x_c,
+					y = y_c,
+					mode='markers',
+					opacity = 0.6,
+					name = 'Single Cells',
+					text = exp_labels,
+					marker = dict(
+						size = 6,
+						color = exp_scaled,
+						colorscale = 'RdBu'
+						)
+				)
+			)
+
+	return {
+        'data': traces,
+        'layout': go.Layout(
+        	autosize = True,
+        	margin=dict(l=0,r=0,t=0),
+            hovermode='closest',
+            xaxis = dict(showgrid = False, zeroline=False, showline=True, title = 'Pseudotime'),
+            yaxis = dict(showgrid = False, zeroline=False, title = ''),
+        )
+    }
+
+@app2.callback(
+    Output('leaf-plot2', 'src'),
+    [Input('precomp-dataset', 'value'),
+    Input('root2', 'value'),
+    Input('leaf-gene2', 'value'),
+    ])
+
+def num_clicks_compute(precomp, root, gene):
+
+	try:
+
+		discovery_plot = '/STREAM_web/stream_web/precomputed/%s/stream_report/%s/stream_plot_%s.png' % (precomp, root, gene)
+		discovery_plot_image = base64.b64encode(open(discovery_plot, 'rb').read()).decode('ascii')
+
+		return 'data:image/png;base64,{}'.format(discovery_plot_image)
+
+	except:
+		pass
+
+@app2.callback(
+    Output('leaf-branches2', 'options'),
+    [Input('precomp-dataset', 'value'),
+    Input('buffer8', 'style')])
+
+def num_clicks_compute(precomp, buffer):
+
+	branches = []
+	find_tables = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/leaf_genes/*.tsv' % precomp)
+	for table in find_tables:
+		branch = table.split('_genes')[-1].strip('.tsv')
+
+		if (branch not in branches) and (len(branch) > 0):
+			branches.append(branch)
+
+	return [{'label': i, 'value': i} for i in branches]
+
+@app2.callback(
+	Output('leaf-table2', 'children'),
+	[Input('precomp-dataset', 'value'),
+	Input('leaf-slider2', 'value'),
+	Input('leaf-branches2', 'value'),
+	])
+
+def update_table(precomp, slider, branch):
+
+	use_this_table = ''
+
+	find_table = glob.glob('/STREAM_web/stream_web/precomputed/%s/stream_report/leaf_genes/*.tsv' % precomp)
+	for table in find_table:
+		if branch in table:
+			use_this_table = table
+			break
+
+	if len(use_this_table) > 0:
+
+		df = pd.read_table(use_this_table).fillna('')
+		
+		pvals = [x for x in df.columns if 'pvalue' in x]
+
+		mapper =  {'zscore': '{0:.2f}',
+		           'H_statistic': '{0:.2f}'}
+
+		for i in pvals:
+			mapper[i] = '{:.2g}'
+
+		for key, value in mapper.items():
+			df[key] = df[key].apply(value.format)
+
+		dff = df.head(n = slider)#[['gene', 'stat', 'diff', 'pval', 'qval']] # update with your own logic
+		column_names = list(dff)
+		column_names[0] = "gene"
+
+		dff.columns = column_names
+
+		return generate_table(dff)
 
 @app.server.route('/dash/urldownload/tmp/RESULTS_FOLDER/<directory>/stream-outputs.zip')
 def generate_report_url(directory):

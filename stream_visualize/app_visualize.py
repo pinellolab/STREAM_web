@@ -2066,7 +2066,6 @@ def update_table(slider, branch, ):
 			df[key] = df[key].apply(value.format)
 
 		dff = df.head(n = slider)#[['gene', 'stat', 'diff', 'pval', 'qval']] # update with your own logic
-
 		return generate_table(dff)
 
 # DOWNLOAD PORTION
