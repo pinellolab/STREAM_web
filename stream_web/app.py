@@ -5024,7 +5024,7 @@ def num_clicks_compute(fig_update, pathname):
 def num_clicks_compute(dataset):
 
 	combined_branches = []
-	find_tables = glob.glob('/stream_web/precomputed/%s/stream_report/DE_Genes/*.tsv' % dataset)
+	find_tables = glob.glob('/stream_web/precomputed/%s/stream_report/de_genes/*.tsv' % dataset)
 	for table in find_tables:
 		# branch1 = table.split(' and ')[0].split('greater_')[1]
 		# branch2 = table.split(' and ')[1].strip('.tsv')
@@ -5157,7 +5157,7 @@ def update_table(slider, branches, direction, dataset):
 		elif direction == branch2:
 			direction_classify = '_less_'
 
-		find_table = glob.glob('/stream_web/precomputed/%s/stream_report/DE_Genes/*.tsv' % dataset)
+		find_table = glob.glob('/stream_web/precomputed/%s/stream_report/de_genes/*.tsv' % dataset)
 		for table in find_table:
 			if (branch1 in table) and (branch2 in table) and (direction_classify in table):
 				use_this_table = table
@@ -5889,7 +5889,7 @@ def num_clicks_compute(fig_update, pathname):
 def num_clicks_compute(dataset):
 
 	branches = []
-	find_tables = glob.glob('/stream_web/precomputed/%s/stream_report/Transition_Genes/*.tsv' % dataset)
+	find_tables = glob.glob('/stream_web/precomputed/%s/stream_report/transition_genes/*.tsv' % dataset)
 	for table in find_tables:
 		branch = table.split('_genes_')[1].strip('.tsv')
 
@@ -5954,7 +5954,7 @@ def update_table(slider, branch, dataset):
 
 	use_this_table = ''
 
-	find_table = glob.glob('/stream_web/precomputed/%s/stream_report/Transition_Genes/*.tsv' % dataset)
+	find_table = glob.glob('/stream_web/precomputed/%s/stream_report/transition_genes/*.tsv' % dataset)
 	for table in find_table:
 		if branch in table:
 			use_this_table = table
