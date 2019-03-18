@@ -479,7 +479,7 @@ app2.layout = html.Div([
 		], style = {'display':'none'}),
 
 	html.Img(src='data:image/png;base64,{}'.format(stream_logo_image), width = '50%'),
-	html.H2('Single-cell Trajectory Reconstruction Exploration And Mapping'),
+	html.H2('Single-cell Trajectory Reconstruction Exploration And Mapping!!!!!'),
 
 	html.Hr(),
 
