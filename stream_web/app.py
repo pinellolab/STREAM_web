@@ -479,7 +479,7 @@ app2.layout = html.Div([
 		], style = {'display':'none'}),
 
 	html.Img(src='data:image/png;base64,{}'.format(stream_logo_image), width = '50%'),
-	html.H2('Single-cell Trajectory Reconstruction Exploration And Mapping'),
+	html.H2('Single-cell Trajectory Reconstruction Exploration And Mapping!!!!!'),
 
 	html.Hr(),
 
@@ -5024,7 +5024,7 @@ def num_clicks_compute(fig_update, pathname):
 def num_clicks_compute(dataset):
 
 	combined_branches = []
-	find_tables = glob.glob('/stream_web/precomputed/%s/stream_report/DE_Genes/*.tsv' % dataset)
+	find_tables = glob.glob('/stream_web/precomputed/%s/stream_report/de_genes/*.tsv' % dataset)
 	for table in find_tables:
 		# branch1 = table.split(' and ')[0].split('greater_')[1]
 		# branch2 = table.split(' and ')[1].strip('.tsv')
