@@ -2750,11 +2750,11 @@ def compute_trajectories(dataset):
 						line = line.strip().split('\t')
 						cell_label_colors_dict[str(line[1])] = str(line[0])
 
-		color_plot = 0
-		if len(cell_label_list) > 0 and len(cell_label_colors_dict) > 0:
-			color_plot = 1
-		elif len(cell_label_list) > 0 and len(cell_label_colors_dict) == 0:
-			color_plot = 0.5
+		# color_plot = 0
+		# if len(cell_label_list) > 0 and len(cell_label_colors_dict) > 0:
+		# 	color_plot = 1
+		# elif len(cell_label_list) > 0 and len(cell_label_colors_dict) == 0:
+		# 	color_plot = 0.5
 
 		cell_coords = '/stream_web/precomputed/%s/stream_report/coord_cells.csv' % dataset
 		coord_states = '/stream_web/precomputed/%s/stream_report/coord_states.csv' % dataset
@@ -2811,32 +2811,32 @@ def compute_trajectories(dataset):
 				x.append(float(line[2]))
 				y.append(float(line[3]))
 				z.append(float(line[4]))
-				try:
-					labels.append(cell_label_colors_dict[str(line[1])])
-				except:
-					pass
+				# try:
+				labels.append(str(line[0].split('_')[0]))
+				# except:
+					# pass
 
 		cell_types = {}
-		if color_plot == 0:
-			cell_types['Single Cells'] = [x, y, z, 'unlabeled', 'grey']
-		elif color_plot == 0.5:
-			for label, x_c, y_c, z_c, color in zip(labels, x, y, z, c):
-				if label not in cell_types:
-					cell_types[label] = [[],[],[],[],[]]
-				cell_types[label][0].append(x_c)
-				cell_types[label][1].append(y_c)
-				cell_types[label][2].append(z_c)
-				cell_types[label][3].append(label)
-				cell_types[label][4].append('grey')
-		else:
-			for label, x_c, y_c, z_c, color in zip(labels, x, y, z, c):
-				if label not in cell_types:
-					cell_types[label] = [[],[],[],[],[]]
-				cell_types[label][0].append(x_c)
-				cell_types[label][1].append(y_c)
-				cell_types[label][2].append(z_c)
-				cell_types[label][3].append(label)
-				cell_types[label][4].append(color)
+		# if color_plot == 0:
+		# 	cell_types['Single Cells'] = [x, y, z, 'unlabeled', 'grey']
+		# elif color_plot == 0.5:
+		# 	for label, x_c, y_c, z_c, color in zip(labels, x, y, z, c):
+		# 		if label not in cell_types:
+		# 			cell_types[label] = [[],[],[],[],[]]
+		# 		cell_types[label][0].append(x_c)
+		# 		cell_types[label][1].append(y_c)
+		# 		cell_types[label][2].append(z_c)
+		# 		cell_types[label][3].append(label)
+				# cell_types[label][4].append('grey')
+		# else:
+		for label, x_c, y_c, z_c, color in zip(labels, x, y, z, c):
+			if label not in cell_types:
+				cell_types[label] = [[],[],[],[],[]]
+			cell_types[label][0].append(x_c)
+			cell_types[label][1].append(y_c)
+			cell_types[label][2].append(z_c)
+			cell_types[label][3].append(label)
+			cell_types[label][4].append(color)
 
 		for label in cell_types:
 			traces.append(
@@ -3125,11 +3125,11 @@ def compute_trajectories(dataset):
 					line = line.strip().split('\t')
 					cell_label_colors_dict[str(line[1])] = str(line[0])
 
-	color_plot = 0
-	if len(cell_label_list) > 0 and len(cell_label_colors_dict) > 0:
-		color_plot = 1
-	elif len(cell_label_list) > 0 and len(cell_label_colors_dict) == 0:
-		color_plot = 0.5
+	# color_plot = 0
+	# if len(cell_label_list) > 0 and len(cell_label_colors_dict) > 0:
+	# 	color_plot = 1
+	# elif len(cell_label_list) > 0 and len(cell_label_colors_dict) == 0:
+	# 	color_plot = 0.5
 
 	cell_coords = '/stream_web/precomputed/%s/stream_report/flat_tree_coord_cells.csv' % dataset
 	nodes = '/stream_web/precomputed/%s/stream_report/nodes.csv' % dataset
@@ -3193,30 +3193,30 @@ def compute_trajectories(dataset):
 			c.append(str(line[1]))
 			x.append(float(line[2]))
 			y.append(float(line[3]))
-			try:
-				labels.append(cell_label_colors_dict[str(line[1])])
-			except:
-				pass
+			# try:
+			labels.append(str(line[0].split('_')[0]))
+			# except:
+			# 	pass
 
 	cell_types = {}
-	if color_plot == 0:
-		cell_types['Single Cells'] = [x, y, 'unlabeled', 'grey']
-	elif color_plot == 0.5:
-		for label, x_c, y_c, color in zip(labels, x, y, c):
-			if label not in cell_types:
-				cell_types[label] = [[],[],[],[]]
-			cell_types[label][0].append(x_c)
-			cell_types[label][1].append(y_c)
-			cell_types[label][2].append(label)
-			cell_types[label][3].append('grey')
-	else:
-		for label, x_c, y_c, color in zip(labels, x, y, c):
-			if label not in cell_types:
-				cell_types[label] = [[],[],[],[]]
-			cell_types[label][0].append(x_c)
-			cell_types[label][1].append(y_c)
-			cell_types[label][2].append(label)
-			cell_types[label][3].append(color)
+	# if color_plot == 0:
+	# 	cell_types['Single Cells'] = [x, y, 'unlabeled', 'grey']
+	# elif color_plot == 0.5:
+	# 	for label, x_c, y_c, color in zip(labels, x, y, c):
+	# 		if label not in cell_types:
+	# 			cell_types[label] = [[],[],[],[]]
+	# 		cell_types[label][0].append(x_c)
+	# 		cell_types[label][1].append(y_c)
+	# 		cell_types[label][2].append(label)
+	# 		cell_types[label][3].append('grey')
+	# else:
+	for label, x_c, y_c, color in zip(labels, x, y, c):
+		if label not in cell_types:
+			cell_types[label] = [[],[],[],[]]
+		cell_types[label][0].append(x_c)
+		cell_types[label][1].append(y_c)
+		cell_types[label][2].append(label)
+		cell_types[label][3].append(color)
 
 	for label in cell_types:
 		traces.append(
