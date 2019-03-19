@@ -2758,8 +2758,9 @@ def compute_trajectories(dataset):
 
 		cell_coords = '/stream_web/precomputed/%s/stream_report/coord_cells.csv' % dataset
 		coord_states = '/stream_web/precomputed/%s/stream_report/coord_states.csv' % dataset
+		metadata = '/stream_web/precomputed/%s/stream_report/metadata.tsv' % dataset
 		path_coords = glob.glob('/stream_web/precomputed/%s/stream_report/coord_curve*csv' % dataset)
-
+		
 		path_coords_reordered = []
 		for e in edge_list:
 			entry = [x for x in path_coords if ((e[0] in x.split('/')[-1]) and (e[1] in x.split('/')[-1]))]
@@ -2798,6 +2799,13 @@ def compute_trajectories(dataset):
 
 					)
 
+		color2cell = {}
+		with open(metadata, 'r') as f:
+			next(f)
+			for line in f:
+				line = line.strip().split('\t')
+				color2cell[str(line[2])] str(line[1])
+
 		x = []
 		y = []
 		z = []
@@ -2812,7 +2820,7 @@ def compute_trajectories(dataset):
 				y.append(float(line[3]))
 				z.append(float(line[4]))
 				# try:
-				labels.append(str(line[0].split('_')[0]))
+				labels.append(color2cell[str(line[1])])
 				# except:
 					# pass
 
@@ -3134,6 +3142,7 @@ def compute_trajectories(dataset):
 	cell_coords = '/stream_web/precomputed/%s/stream_report/flat_tree_coord_cells.csv' % dataset
 	nodes = '/stream_web/precomputed/%s/stream_report/nodes.csv' % dataset
 	edges = '/stream_web/precomputed/%s/stream_report/edges.tsv' % dataset
+	metadata = '/stream_web/precomputed/%s/stream_report/metadata.tsv' % dataset
 
 	node_list = {}
 	edge_list = []
@@ -3182,6 +3191,13 @@ def compute_trajectories(dataset):
 					)
 			)
 
+	color2cell = {}
+	with open(metadata, 'r') as f:
+		next(f)
+		for line in f:
+			line = line.strip().split('\t')
+			color2cell[str(line[2])] str(line[1])
+
 	x = []
 	y = []
 	c = []
@@ -3194,7 +3210,7 @@ def compute_trajectories(dataset):
 			x.append(float(line[2]))
 			y.append(float(line[3]))
 			# try:
-			labels.append(str(line[0].split('_')[0]))
+			labels.append(color2cell[str(line[1])])
 			# except:
 			# 	pass
 
