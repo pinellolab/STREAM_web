@@ -25,6 +25,7 @@ import json
 import csv
 import time
 import zipfile
+from slugify import slugify
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 
@@ -2510,6 +2511,7 @@ def compute_trajectories(pathname, n_clicks):
 							for line in f:
 								cell_label_list.append(line.strip())
 
+				# FIX HERE HUIDONG
 				cell_label_colors_dict = {}
 				if len(cell_label_colors) > 0:
 					if cell_label_colors[0].endswith('.gz'):
@@ -2959,6 +2961,7 @@ def compute_trajectories(pathname, threed_scatter, n_clicks):
 							for line in f:
 								cell_label_list.append(line.strip())
 
+				# FIX HERE HUIDONG
 				cell_label_colors_dict = {}
 				if len(cell_label_colors) > 0:
 					if cell_label_colors[0].endswith('.gz'):
@@ -3331,6 +3334,8 @@ def num_clicks_compute(root, figure, pathname):
 				for line in f:
 					cell_label_list.append(line.strip())
 
+
+	# CHANGE HERE HUIDONG
 	cell_label_colors_dict = {}
 	if len(cell_label_colors) > 0:
 		if cell_label_colors[0].endswith('.gz'):
@@ -3338,6 +3343,13 @@ def num_clicks_compute(root, figure, pathname):
 				for line in f:
 					line = line.strip().split('\t')
 					cell_label_colors_dict[str(line[1])] = str(line[0])
+
+				# for line in f:
+				# 	print(line)
+				# 	line = line.decode("utf-8") 
+				# 	print(line)
+				# 	# line = line.strip().split('\t')
+				# 	cell_label_colors_dict[str(line[1].strip('\n'))] = str(line[0].strip('\n'))
 
 		else:
 			with open(cell_label_colors[0], 'r') as f:
@@ -3749,11 +3761,27 @@ def num_clicks_compute(fig_update, pathname):
 		UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
 		RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
 
-		with open(UPLOADS_FOLDER + '/params.json', 'r') as f:
-			json_string = f.readline().strip()
-			param_dict = json.loads(json_string)
+		gene_conversion_dict = {}
+		gene_list_new = []
+		with open(RESULTS_FOLDER + '/gene_conversion.tsv', 'r') as f:
+			next(f)
+			for line in f:
+				orig, new = line.split('\t')
+				gene_conversion_dict[new.strip('\n')] = orig.strip('\n')
+				gene_list_new.append([new.strip('\n'), orig.strip('\n')])
 
-		return [{'label': i, 'value': i} for i in param_dict['sg-genes']]
+		return [{'label': i[1], 'value': i[1]} for i in gene_list_new if i != 'False']
+
+	# if pathname:
+
+	# 	UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+	# 	RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+
+	# 	with open(UPLOADS_FOLDER + '/params.json', 'r') as f:
+	# 		json_string = f.readline().strip()
+	# 		param_dict = json.loads(json_string)
+
+	# 	return [{'label': i, 'value': i} for i in param_dict['sg-genes']]
 
 @app2.callback(
     Output('sg-gene2', 'options'),
@@ -3818,10 +3846,10 @@ def num_clicks_compute(n_clicks, pathname):
 		if n_clicks > param_dict['sg-clicks'] and param_dict['compute-run']:
 			return 'Running...'
 		else:
-			return 'Perform Analysis'
+			return 'Visualize'
 
 	else:
-		return 'Perform Analysis'
+		return 'Visualize'
 
 @app.callback(
     Output('sg-container', 'style'),
@@ -4059,6 +4087,8 @@ def compute_trajectories(pathname, n_clicks, root, gene):
 	traces = []
 
 	if pathname:
+
+		gene = slugify(gene)
 
 		UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
 		RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
@@ -4331,6 +4361,8 @@ def compute_trajectories(dataset, gene, root):
 def num_clicks_compute(figure, pathname, root, gene):
 
 	if pathname:
+
+		gene = slugify(gene)
 
 		UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
 		RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
