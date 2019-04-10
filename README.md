@@ -35,3 +35,9 @@ $ docker run -p 10001:10001 pinellolab/stream_web
 
 After the execution of the command the user will have a local instance of the website accessible at the URL: 
 [http://localhost:10001](http://localhost:10001)
+
+To stop the website, from the command line execute the following command:
+```sh
+$ docker ps
+$ docker kill CONTAINER_ID
+```
