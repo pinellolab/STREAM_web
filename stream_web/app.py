@@ -2500,31 +2500,34 @@ def compute_trajectories(pathname, n_clicks):
 						line = line.strip().split('\t')
 						edge_list.append([str(line[0]), str(line[1])])
 
-				cell_label_list = []
-				if len(cell_label) > 0:
-					if cell_label[0].endswith('.gz'):
-						with gzip.open(cell_label[0], 'r') as f:
-							for line in f:
-								cell_label_list.append(line.strip())
-					else:
-						with open(cell_label[0], 'r') as f:
-							for line in f:
-								cell_label_list.append(line.strip())
+				# cell_label_list = []
+				# if len(cell_label) > 0:
+				# 	if cell_label[0].endswith('.gz'):
+				# 		with gzip.open(cell_label[0], 'r') as f:
+				# 			for line in f:
+				# 				cell_label_list.append(line.strip())
+				# 	else:
+				# 		with open(cell_label[0], 'r') as f:
+				# 			for line in f:
+				# 				cell_label_list.append(line.strip())
+				cell_label_df = pd.read_csv(cell_label[0],sep='\t',header=None,index_col=None,compression= 'gzip' if cell_label[0].split('.')[-1]=='gz' else None)
+				cell_label_list = cell_label_df[0].tolist()
 
-				# FIX HERE HUIDONG
-				cell_label_colors_dict = {}
-				if len(cell_label_colors) > 0:
-					if cell_label_colors[0].endswith('.gz'):
-						with gzip.open(cell_label_colors[0], 'r') as f:
-							for line in f:
-								line = line.strip().split('\t')
-								cell_label_colors_dict[str(line[1])] = str(line[0])
+				# cell_label_colors_dict = {}
+				# if len(cell_label_colors) > 0:
+				# 	if cell_label_colors[0].endswith('.gz'):
+				# 		with gzip.open(cell_label_colors[0], 'r') as f:
+				# 			for line in f:
+				# 				line = line.strip().split('\t')
+				# 				cell_label_colors_dict[str(line[1])] = str(line[0])
 
-					else:
-						with open(cell_label_colors[0], 'r') as f:
-							for line in f:
-								line = line.strip().split('\t')
-								cell_label_colors_dict[str(line[1])] = str(line[0])
+				# 	else:
+				# 		with open(cell_label_colors[0], 'r') as f:
+				# 			for line in f:
+				# 				line = line.strip().split('\t')
+				# 				cell_label_colors_dict[str(line[1])] = str(line[0])
+				cell_label_colors_df = pd.read_csv(cell_label_colors[0],sep='\t',header=None,dtype={0:np.str},compression= 'gzip' if cell_label_colors[0].split('.')[-1]=='gz' else None)
+				cell_label_colors_dict = cell_label_colors_df.set_index(1)[0].to_dict()
 
 				color_plot = 0
 				if len(cell_label_list) > 0 and len(cell_label_colors_dict) > 0:
@@ -2950,31 +2953,34 @@ def compute_trajectories(pathname, threed_scatter, n_clicks):
 				cell_label = glob.glob(UPLOADS_FOLDER + '/Cell_Labels*')
 				cell_label_colors = glob.glob(UPLOADS_FOLDER + '/Cell_Label_Colors*')
 
-				cell_label_list = []
-				if len(cell_label) > 0:
-					if cell_label[0].endswith('.gz'):
-						with gzip.open(cell_label[0], 'r') as f:
-							for line in f:
-								cell_label_list.append(line.strip())
-					else:
-						with open(cell_label[0], 'r') as f:
-							for line in f:
-								cell_label_list.append(line.strip())
+				# cell_label_list = []
+				# if len(cell_label) > 0:
+				# 	if cell_label[0].endswith('.gz'):
+				# 		with gzip.open(cell_label[0], 'r') as f:
+				# 			for line in f:
+				# 				cell_label_list.append(line.strip())
+				# 	else:
+				# 		with open(cell_label[0], 'r') as f:
+				# 			for line in f:
+				# 				cell_label_list.append(line.strip())
+				cell_label_df = pd.read_csv(cell_label[0],sep='\t',header=None,index_col=None,compression= 'gzip' if cell_label[0].split('.')[-1]=='gz' else None)
+				cell_label_list = cell_label_df[0].tolist()
 
-				# FIX HERE HUIDONG
-				cell_label_colors_dict = {}
-				if len(cell_label_colors) > 0:
-					if cell_label_colors[0].endswith('.gz'):
-						with gzip.open(cell_label_colors[0], 'r') as f:
-							for line in f:
-								line = line.strip().split('\t')
-								cell_label_colors_dict[str(line[1])] = str(line[0])
+				# cell_label_colors_dict = {}
+				# if len(cell_label_colors) > 0:
+				# 	if cell_label_colors[0].endswith('.gz'):
+				# 		with gzip.open(cell_label_colors[0], 'r') as f:
+				# 			for line in f:
+				# 				line = line.strip().split('\t')
+				# 				cell_label_colors_dict[str(line[1])] = str(line[0])
 
-					else:
-						with open(cell_label_colors[0], 'r') as f:
-							for line in f:
-								line = line.strip().split('\t')
-								cell_label_colors_dict[str(line[1])] = str(line[0])
+				# 	else:
+				# 		with open(cell_label_colors[0], 'r') as f:
+				# 			for line in f:
+				# 				line = line.strip().split('\t')
+				# 				cell_label_colors_dict[str(line[1])] = str(line[0])
+				cell_label_colors_df = pd.read_csv(cell_label_colors[0],sep='\t',header=None,dtype={0:np.str},compression= 'gzip' if cell_label_colors[0].split('.')[-1]=='gz' else None)
+				cell_label_colors_dict = cell_label_colors_df.set_index(1)[0].to_dict()
 
 				color_plot = 0
 				if len(cell_label_list) > 0 and len(cell_label_colors_dict) > 0:
@@ -3323,39 +3329,42 @@ def num_clicks_compute(root, figure, pathname):
 	cell_label = glob.glob(UPLOADS_FOLDER + '/Cell_Labels*')
 	cell_label_colors = glob.glob(UPLOADS_FOLDER + '/Cell_Label_Colors*')
 
-	cell_label_list = []
-	if len(cell_label) > 0:
-		if cell_label[0].endswith('.gz'):
-			with gzip.open(cell_label[0], 'r') as f:
-				for line in f:
-					cell_label_list.append(line.strip())
-		else:
-			with open(cell_label[0], 'r') as f:
-				for line in f:
-					cell_label_list.append(line.strip())
+	# cell_label_list = []
+	# if len(cell_label) > 0:
+	# 	if cell_label[0].endswith('.gz'):
+	# 		with gzip.open(cell_label[0], 'r') as f:
+	# 			for line in f:
+	# 				cell_label_list.append(line.strip())
+	# 	else:
+	# 		with open(cell_label[0], 'r') as f:
+	# 			for line in f:
+	# 				cell_label_list.append(line.strip())
+	cell_label_df = pd.read_csv(cell_label[0],sep='\t',header=None,index_col=None,compression= 'gzip' if cell_label[0].split('.')[-1]=='gz' else None)
+	cell_label_list = cell_label_df[0].tolist()	
 
 
-	# CHANGE HERE HUIDONG
-	cell_label_colors_dict = {}
-	if len(cell_label_colors) > 0:
-		if cell_label_colors[0].endswith('.gz'):
-			with gzip.open(cell_label_colors[0], 'r') as f:
-				for line in f:
-					line = line.strip().split('\t')
-					cell_label_colors_dict[str(line[1])] = str(line[0])
+	# cell_label_colors_dict = {}
+	# if len(cell_label_colors) > 0:
+	# 	if cell_label_colors[0].endswith('.gz'):
+	# 		with gzip.open(cell_label_colors[0], 'r') as f:
+	# 			for line in f:
+	# 				line = line.strip().split('\t')
+	# 				cell_label_colors_dict[str(line[1])] = str(line[0])
 
-				# for line in f:
-				# 	print(line)
-				# 	line = line.decode("utf-8") 
-				# 	print(line)
-				# 	# line = line.strip().split('\t')
-				# 	cell_label_colors_dict[str(line[1].strip('\n'))] = str(line[0].strip('\n'))
+	# 			# for line in f:
+	# 			# 	print(line)
+	# 			# 	line = line.decode("utf-8") 
+	# 			# 	print(line)
+	# 			# 	# line = line.strip().split('\t')
+	# 			# 	cell_label_colors_dict[str(line[1].strip('\n'))] = str(line[0].strip('\n'))
 
-		else:
-			with open(cell_label_colors[0], 'r') as f:
-				for line in f:
-					line = line.strip().split('\t')
-					cell_label_colors_dict[str(line[1])] = str(line[0])
+	# 	else:
+	# 		with open(cell_label_colors[0], 'r') as f:
+	# 			for line in f:
+	# 				line = line.strip().split('\t')
+	# 				cell_label_colors_dict[str(line[1])] = str(line[0])
+	cell_label_colors_df = pd.read_csv(cell_label_colors[0],sep='\t',header=None,dtype={0:np.str},compression= 'gzip' if cell_label_colors[0].split('.')[-1]=='gz' else None)
+	cell_label_colors_dict = cell_label_colors_df.set_index(1)[0].to_dict()
 
 	color_plot = 0
 	if len(cell_label_list) > 0 and len(cell_label_colors_dict) > 0:
