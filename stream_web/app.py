@@ -26,6 +26,8 @@ import csv
 import time
 import zipfile
 from slugify import slugify
+from adapt import reformat as ref
+import io
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 
@@ -226,6 +228,7 @@ def save_files2():
 			sb.call('rm -rf /stream_web/precomputed/%s' % new_folder_name, shell = True)
 
 			sb.call('mkdir /stream_web/precomputed/%s' % new_folder_name, shell = True)
+
 			zip_ref = zipfile.ZipFile(i, 'r')
 			zip_ref.extractall('/stream_web/precomputed/%s/' % new_folder_name)
 			zip_ref.close()
@@ -263,7 +266,7 @@ def save_files2():
 			new_json_string = json.dumps(param_dict)
 			f.write(new_json_string + '\n')
 
-		print('Completed upload ...')
+		# print('Completed upload ...')
 
 		return 'Completed upload ...'
 
@@ -281,7 +284,7 @@ def save_files2():
 			new_json_string = json.dumps(param_dict)
 			f.write(new_json_string + '\n')
 
-		print('Upload Failed. Please upload .zip file.')
+		# print('Upload Failed. Please upload .zip file.')
 
 		return 'Upload Failed. Please upload .zip file.'
 
@@ -516,32 +519,36 @@ app2.layout = html.Div([
 			id = 'upload-container',
 			children = [
 
-			html.H3('Upload Personal Data'),
+			html.H3('Upload Personal Data (.zip)'),
 
-			# dcc.Upload([
-		 #        'Drag and Drop or ',
-		 #        html.A('Select a File')
-		 #    ], style={
-		 #        'width': '100%',
-		 #        'height': '60px',
-		 #        'lineHeight': '60px',
-		 #        'borderWidth': '1px',
-		 #        'borderStyle': 'dashed',
-		 #        'borderRadius': '5px',
-		 #        'textAlign': 'center'
-		 #    })
+			dcc.Upload(
+	            id='upload-data',
+	            children=html.Div([
+	                'Drag and Drop or ',
+	                html.A('Select Files')
+	            ], style = {'font-weight':'bold', 'font-size': 20}),
+	            style={
+	                'width': '100%',
+	                'height': '60px',
+	                'lineHeight': '60px',
+	                'borderWidth': '1px',
+	                'borderStyle': 'dashed',
+	                'borderRadius': '5px',
+	                'textAlign': 'center',
+	            },
+	            multiple=False),
 
-			FilesUpload(
-		        id='upload-files',
-		        label = 'tmp1',
-		        uploadUrl=upload_url2,
-			    ),
+			# FilesUpload(
+		 #        id='upload-files',
+		 #        label = 'tmp1',
+		 #        uploadUrl=upload_url2,
+			#     ),
 
-			html.Label(id = 'zip-update', children = 'STREAM Results (.zip): No Upload', style = {'font-weight':'bold'}),
+			html.Label(id = 'upload-log', children = 'STREAM Results (.zip): No Upload', style = {'font-weight':'bold'}),
 
-			html.Hr(),
+			# html.Hr(),
 
-			html.Button(id = 'visualize-data', children = 'Visualize STREAM Results', n_clicks = 0),
+			# html.Button(id = 'visualize-data', children = 'Visualize STREAM Results', n_clicks = 0),
 
 			], className = 'six columns'),
 
@@ -1858,7 +1865,7 @@ app.layout = html.Div([
 # Precomputed folders
 @app2.callback(
     Output('precomp-dataset', 'options'),
-    [Input('visualize-data','n_clicks'),
+    [Input('upload-log','children'),
     Input('url2', 'pathname')])
 
 def num_clicks_compute(n_clicks, pathname):
@@ -1895,6 +1902,8 @@ def num_clicks_compute(options, pathname):
 	for json_entry in json_list:
 		data = json.load(open(json_entry))
 		dataset_list.append([data['title'], json_entry.split('/')[-2]])
+
+	# print(dataset_list)
 		
 	return dataset_list[-1][1]
 
@@ -1942,47 +1951,47 @@ def num_clicks_compute(dataset):
 
 	return 'Command Used: ' + data['command_used']
 
-@app2.callback(
-	Output('zip-update', 'children'),
-	[Input('url2', 'pathname')],
-	events=[Event('common-interval2', 'interval')])
+# @app2.callback(
+# 	Output('zip-update', 'children'),
+# 	[Input('url2', 'pathname')],
+# 	events=[Event('common-interval2', 'interval')])
 
-def update_matrix_log(pathname):
+# def update_matrix_log(pathname):
 
-	if pathname:
+# 	if pathname:
 
-		UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
-		RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+# 		UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+# 		RESULTS_FOLDER = app.server.config['RESULTS_FOLDER'] + '/' + str(pathname).split('/')[-1]
 
-		with open(UPLOADS_FOLDER + '/params.json', 'r') as f:
-			json_string = f.readline().strip()
-			param_dict = json.loads(json_string)
+# 		with open(UPLOADS_FOLDER + '/params.json', 'r') as f:
+# 			json_string = f.readline().strip()
+# 			param_dict = json.loads(json_string)
 
-		return param_dict['zip-update']
+# 		return param_dict['zip-update']
 
-@app2.callback(
-	Output('visualize-data', 'children'),
-	[Input('zip-update', 'children'),
-	Input('url2', 'pathname')])
+# @app2.callback(
+# 	Output('visualize-data', 'children'),
+# 	[Input('zip-update', 'children'),
+# 	Input('url2', 'pathname')])
 
-def update_visualize_button(zip_update, pathname):
+# def update_visualize_button(zip_update, pathname):
 
-	if 'Successfully' in zip_update:
-		return 'Visualize STREAM Results'
-	else:
-		return 'Upload Step Incomplete'
+# 	if 'Successfully' in zip_update:
+# 		return 'Visualize STREAM Results'
+# 	else:
+# 		return 'Upload Step Incomplete'
 
-@app2.callback(
-    Output('visualize-data', 'disabled'),
-    [Input('zip-update', 'children'),
-	Input('url2', 'pathname')])
+# @app2.callback(
+#     Output('visualize-data', 'disabled'),
+#     [Input('zip-update', 'children'),
+# 	Input('url2', 'pathname')])
 
-def num_clicks_compute(zip_update, pathname):
+# def num_clicks_compute(zip_update, pathname):
 
-	if 'Successfully' in zip_update:
-		return False
-	else:
-		return True
+# 	if 'Successfully' in zip_update:
+# 		return False
+# 	else:
+# 		return True
 
 
 #### INPUT FILES ######
@@ -1996,15 +2005,15 @@ def update_input_files(pathname):
 
 	return ','.join(file_names)
 
-@app2.callback(
-    Output('upload-files', 'label'),
-    [Input('url2', 'pathname')])
+# @app2.callback(
+#     Output('upload-files', 'label'),
+#     [Input('url2', 'pathname')])
 
-def update_input_files(pathname):
+# def update_input_files(pathname):
 
-	file_names = ['STREAM Results .zip']
+# 	file_names = ['STREAM Results .zip']
 
-	return ','.join(file_names)
+# 	return ','.join(file_names)
 
 #### Load exmample data
 @app.callback(
@@ -4497,7 +4506,7 @@ def num_clicks_compute(dataset):
 
 	gene_list = [x.split('_')[-1].replace('.png', '') for x in gene_list_tmp]
 
-	print(gene_list)
+	# print(gene_list)
 
 	gene_conversion_dict = {}
 	with open('/stream_web/precomputed/%s/stream_report/gene_conversion.tsv' % dataset, 'r') as f:
@@ -7232,13 +7241,76 @@ def generate_report_url(directory):
 	sb.call('cp -r %s/*pdf %s/%s/%s' % (RESULTS_FOLDER, RESULTS_FOLDER, overview_folder, results_folder), shell = True)
 	sb.call('cp -r %s/*png %s/%s/%s' % (RESULTS_FOLDER, RESULTS_FOLDER, overview_folder, results_folder), shell = True)
 	sb.call('cp -r %s/S* %s/%s/%s' % (RESULTS_FOLDER, RESULTS_FOLDER, overview_folder, results_folder), shell = True)
-	sb.call('cp -r %s/*_Genes %s/%s/%s' % (RESULTS_FOLDER, RESULTS_FOLDER, overview_folder, results_folder), shell = True)
+	sb.call('cp -r %s/*_genes %s/%s/%s' % (RESULTS_FOLDER, RESULTS_FOLDER, overview_folder, results_folder), shell = True)
 	sb.call('cp -r %s/Precomputed %s/%s/%s' % (RESULTS_FOLDER, RESULTS_FOLDER, overview_folder, results_folder), shell = True)
 
 	proc = sb.Popen('pushd %s && zip -r %s.zip %s && popd' % (RESULTS_FOLDER, overview_folder, overview_folder), shell=True, executable='/bin/bash')
 	proc.wait()
 
+	ref.web('/tmp/RESULTS_FOLDER/%s/stream-outputs.zip' % (directory), '/tmp/RESULTS_FOLDER/%s/stream-outputs.zip' % (directory))
+
 	return send_file('/tmp/RESULTS_FOLDER/%s/stream-outputs.zip' % (directory), attachment_filename = 'stream-outputs.zip', as_attachment = True)
+
+
+# Add drag and drop upload for visualization
+@app2.callback(Output('upload-log', 'children'),
+              [Input('upload-data', 'contents'),
+               Input('upload-data', 'filename')],
+               state = [State('url2', 'pathname')])
+
+def download_file(contents, filename, pathname):
+
+	if pathname:
+
+		content_type, content_string = contents.split(',')
+
+		UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(pathname).split('/')[-1]
+
+		if filename.endswith('.zip'):
+
+			# upload_files(['STREAM Results .zip'], UPLOADS_FOLDER)
+			with open('%s/STREAM_Results.zip' % UPLOADS_FOLDER, 'wb') as fh:
+				decoded = base64.b64decode(content_string)
+				fh.write(decoded)
+
+			stream_zip = glob.glob(UPLOADS_FOLDER + '/STREAM_Results*.zip')
+
+			if len(stream_zip) > 0:
+
+				for i in stream_zip:
+
+					# print('zip file: %s' % i)
+
+					new_folder_name = 'USER_UPLOAD_%s' % str(str(pathname).split('/')[-1])
+
+					sb.call('rm -rf /stream_web/precomputed/%s' % new_folder_name, shell = True)
+
+					sb.call('mkdir /stream_web/precomputed/%s' % new_folder_name, shell = True)
+
+					zip_ref = zipfile.ZipFile(i, 'r')
+					zip_ref.extractall('/stream_web/precomputed/%s/' % new_folder_name)
+					zip_ref.close()
+
+					try:
+						sb.call('mkdir /stream_web/precomputed/%s/stream_report' % new_folder_name, shell = True)
+					except:
+						pass
+
+					sb.call('mv /stream_web/precomputed/%s/*/*json /stream_web/precomputed/%s' % (new_folder_name, new_folder_name), shell = True)
+					sb.call('mv /stream_web/precomputed/%s/*/stream_report/* /stream_web/precomputed/%s/stream_report' % (new_folder_name, new_folder_name), shell = True)
+					sb.call('rm -rf /stream_web/precomputed/%s/*/stream_report' % new_folder_name, shell = True)
+
+					try:
+						sb.call('rm -rf /stream_web/precomputed/%s/__MACOSX' % new_folder_name, shell = True)
+					except:
+						pass
+
+				return 'Upload Status: Complete'
+
+		else:
+			return 'Upload Status: Incomplete - .zip format required'
+
+	return 'Upload Status: Incomplete - No upload'
 
 def main():
     app.run_server(debug = True, processes = 5, port = 9992, host = '0.0.0.0')

@@ -15,6 +15,7 @@ RUN pip install dash-html-components==0.9.0  # HTML components
 RUN pip install dash-core-components==0.21.1  # Supercharged components
 RUN pip install plotly --upgrade  # Plotly graphing library used in examples
 RUN pip install gunicorn
+RUN pip install Werkzeug==0.16.1
 
 #RUN apt-get install unzip
 #libxml2 libxml2-dev -y
