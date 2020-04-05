@@ -163,7 +163,7 @@ def index():
 	'sg-genes':['False'], 'discovery-genes':['False'], 'correlation-genes':['False'], 'leaf-genes':['False'],'sg-gene':'False', 'discovery-gene':'False', 'correlation-gene':'False', 'leaf-gene':'False',
 	'compute-run':False,'sg-run':False,'discovery-run':False, 'correlation-run':False, 'leaf-run':False, 'required_files': ['Data Matrix', 'Cell Labels', 'Cell Label Colors'],
 	'checkbutton1':1, 'checkpoint1':True,'checkbutton2':1, 'checkpoint2':True,'checkbutton3':1, 'checkpoint3':True,'checkbutton4':1, 'checkpoint4':True,'checkbutton5':1, 'checkpoint5':True,
-	'matrix-update':'Data Matrix: No Upload (Required)', 'cl-update':'Cell Labels File: No Upload (Optional)', 'clc-update':'Cell Label Colors File: No Upload (Optional)', 'compute-disable':True, 'compute-update':'Load Personal or Example Data (Step 1)', 'zip-update':'STREAM Results (.zip): No Upload', 'visualize-update':'Press button above to visualize your data!'}
+	'matrix-update':'Data Matrix: No Upload (Required)', 'cl-update':'Cell Labels File: No Upload (Optional)', 'clc-update':'Cell Label Colors File: No Upload (Optional)', 'compute-disable':True, 'compute-update':'Load Personal or Example Data (Step 1)', 'visualize-update':'Press button above to visualize your data!'} #'zip-update':'STREAM Results (.zip): No Upload',
 
 	with open(UPLOADS_FOLDER + '/params.json', 'w') as f:
 		json_string = json.dumps(param_dict)
@@ -197,96 +197,96 @@ def generate_table(dataframe, max_rows = 100):
         ]) for i in range(min(len(dataframe), max_rows))]
     )
 
-# Upload file
-upload_url2='/uploadajax2'
+# # Upload file
+# upload_url2='/uploadajax2'
 
-@app2.server.route(upload_url2, methods = ['POST'])
-def save_files2():
+# @app2.server.route(upload_url2, methods = ['POST'])
+# def save_files2():
 
-	folder_location = request.referrer
-	UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(folder_location.split('/')[-1])
+# 	folder_location = request.referrer
+# 	UPLOADS_FOLDER = app.server.config['UPLOADS_FOLDER'] + '/' + str(folder_location.split('/')[-1])
 
-	with open(UPLOADS_FOLDER + '/params.json', 'r') as f:
-		json_string = f.readline().strip()
-		param_dict = json.loads(json_string)
+# 	with open(UPLOADS_FOLDER + '/params.json', 'r') as f:
+# 		json_string = f.readline().strip()
+# 		param_dict = json.loads(json_string)
 
-	try:
-		sb.call('rm %s/STREAM_Results_*zip' % UPLOADS_FOLDER, shell = True)
-	except:
-		pass
+# 	try:
+# 		sb.call('rm %s/STREAM_Results_*zip' % UPLOADS_FOLDER, shell = True)
+# 	except:
+# 		pass
 
-	upload_files(['STREAM Results .zip'], UPLOADS_FOLDER)
+# 	upload_files(['STREAM Results .zip'], UPLOADS_FOLDER)
 
-	stream_zip = glob.glob(UPLOADS_FOLDER + '/STREAM_Results_*zip')
+# 	stream_zip = glob.glob(UPLOADS_FOLDER + '/STREAM_Results_*zip')
 
-	if len(stream_zip) > 0:
+# 	if len(stream_zip) > 0:
 
-		for i in stream_zip:
+# 		for i in stream_zip:
 
-			new_folder_name = 'USER_UPLOAD_%s' % str(folder_location.split('/')[-1])
+# 			new_folder_name = 'USER_UPLOAD_%s' % str(folder_location.split('/')[-1])
 
-			sb.call('rm -rf /stream_web/precomputed/%s' % new_folder_name, shell = True)
+# 			sb.call('rm -rf /stream_web/precomputed/%s' % new_folder_name, shell = True)
 
-			sb.call('mkdir /stream_web/precomputed/%s' % new_folder_name, shell = True)
+# 			sb.call('mkdir /stream_web/precomputed/%s' % new_folder_name, shell = True)
 
-			zip_ref = zipfile.ZipFile(i, 'r')
-			zip_ref.extractall('/stream_web/precomputed/%s/' % new_folder_name)
-			zip_ref.close()
+# 			zip_ref = zipfile.ZipFile(i, 'r')
+# 			zip_ref.extractall('/stream_web/precomputed/%s/' % new_folder_name)
+# 			zip_ref.close()
 
-			try:
-				sb.call('mkdir /stream_web/precomputed/%s/stream_report' % new_folder_name, shell = True)
-			except:
-				pass
+# 			try:
+# 				sb.call('mkdir /stream_web/precomputed/%s/stream_report' % new_folder_name, shell = True)
+# 			except:
+# 				pass
 
-			sb.call('mv /stream_web/precomputed/%s/*/*json /stream_web/precomputed/%s' % (new_folder_name, new_folder_name), shell = True)
-			sb.call('mv /stream_web/precomputed/%s/*/stream_report/* /stream_web/precomputed/%s/stream_report' % (new_folder_name, new_folder_name), shell = True)
-			sb.call('rm -rf /stream_web/precomputed/%s/*/stream_report' % new_folder_name, shell = True)
+# 			sb.call('mv /stream_web/precomputed/%s/*/*json /stream_web/precomputed/%s' % (new_folder_name, new_folder_name), shell = True)
+# 			sb.call('mv /stream_web/precomputed/%s/*/stream_report/* /stream_web/precomputed/%s/stream_report' % (new_folder_name, new_folder_name), shell = True)
+# 			sb.call('rm -rf /stream_web/precomputed/%s/*/stream_report' % new_folder_name, shell = True)
 
-			try:
-				sb.call('rm -rf /stream_web/precomputed/%s/__MACOSX' % new_folder_name, shell = True)
-			except:
-				pass
+# 			try:
+# 				sb.call('rm -rf /stream_web/precomputed/%s/__MACOSX' % new_folder_name, shell = True)
+# 			except:
+# 				pass
 
-			# json_list = glob.glob('/stream_web/precomputed/*/*json')
+# 			# json_list = glob.glob('/stream_web/precomputed/*/*json')
 
-			# for j in  json_list:
+# 			# for j in  json_list:
 
-			# 	previous_folder_name = j.strip('\n').split('/')[-1].replace('.json','')
-			# 	new_folder_name = j.strip('\n').split('/')[-1].replace('.json','')
+# 			# 	previous_folder_name = j.strip('\n').split('/')[-1].replace('.json','')
+# 			# 	new_folder_name = j.strip('\n').split('/')[-1].replace('.json','')
 
-			# 	print(previous_folder_name)
-			# 	print(new_folder_name)
+# 			# 	print(previous_folder_name)
+# 			# 	print(new_folder_name)
 
-			# 	sb.call('mkdir /stream_web/precomputed/%s' % folder_name, shell = True)
-			# 	sb.call('mv /stream_web/precomputed/%s.json stream_report /stream_web/precomputed/%s' % (folder_name, folder_name), shell = True)
+# 			# 	sb.call('mkdir /stream_web/precomputed/%s' % folder_name, shell = True)
+# 			# 	sb.call('mv /stream_web/precomputed/%s.json stream_report /stream_web/precomputed/%s' % (folder_name, folder_name), shell = True)
 
-		param_dict['zip-update'] = 'Successfully loaded STREAM Results (.zip)'
+# 		param_dict['zip-update'] = 'Successfully loaded STREAM Results (.zip)'
 
-		with open(UPLOADS_FOLDER + '/params.json', 'w') as f:
-			new_json_string = json.dumps(param_dict)
-			f.write(new_json_string + '\n')
+# 		with open(UPLOADS_FOLDER + '/params.json', 'w') as f:
+# 			new_json_string = json.dumps(param_dict)
+# 			f.write(new_json_string + '\n')
 
-		# print('Completed upload ...')
+# 		# print('Completed upload ...')
 
-		return 'Completed upload ...'
+# 		return 'Completed upload ...'
 
-	else:
+# 	else:
 
-		wrong_files = glob.glob(UPLOADS_FOLDER + '/STREAM_Results_*')
+# 		wrong_files = glob.glob(UPLOADS_FOLDER + '/STREAM_Results_*')
 
-		for i in wrong_files:
+# 		for i in wrong_files:
 
-			sb.call('rm %s' % (i), shell = True)
+# 			sb.call('rm %s' % (i), shell = True)
 
-		param_dict['zip-update'] = 'Failed to load STREAM Results. Please upload correct file format (.zip).'
+# 		param_dict['zip-update'] = 'Failed to load STREAM Results. Please upload correct file format (.zip).'
 
-		with open(UPLOADS_FOLDER + '/params.json', 'w') as f:
-			new_json_string = json.dumps(param_dict)
-			f.write(new_json_string + '\n')
+# 		with open(UPLOADS_FOLDER + '/params.json', 'w') as f:
+# 			new_json_string = json.dumps(param_dict)
+# 			f.write(new_json_string + '\n')
 
-		# print('Upload Failed. Please upload .zip file.')
+# 		# print('Upload Failed. Please upload .zip file.')
 
-		return 'Upload Failed. Please upload .zip file.'
+# 		return 'Upload Failed. Please upload .zip file.'
 
 
 upload_url1='/uploadajax1'
