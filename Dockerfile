@@ -27,6 +27,7 @@ RUN pip install Werkzeug==0.16.1
 COPY stream_web /stream_web
 
 WORKDIR /stream_web/
+RUN mkdir /stream_web/precomputed
 
 # upload button
 RUN unzip upload-button.zip && cd upload-button && python setup.py install
