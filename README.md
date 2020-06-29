@@ -1,11 +1,11 @@
 # STREAM_web
-STREAM interactive website [stream.pinellolab.org](http://stream.pinellolab.org/)
+STREAM interactive website [stream.pinellolab.org](https://stream.pinellolab.partners.org/)
 
 
 STREAM interactive website
 --------------------------
 
-In order to make STREAM user friendly and accessible to non-bioinformatician, we have created an interactive website: [http://stream.pinellolab.org](http://stream.pinellolab.org) 
+In order to make STREAM user friendly and accessible to non-bioinformatician, we have created an interactive website: [http://stream.pinellolab.org](https://stream.pinellolab.partners.org/) 
 
 The website implements the features of **stream command line** and in addition provides interactive and exploratory panels to visualize single-cell trajectories.  
 
