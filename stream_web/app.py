@@ -26,7 +26,8 @@ import csv
 import time
 import zipfile
 from slugify import slugify
-from adapt import reformat as ref
+import reformat_stream as rs
+# from adapt import reformat as ref
 import io
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -1162,13 +1163,13 @@ app.layout = html.Div([
 				html.Div([
 
 					html.Label('LOESS Fraction', style = {'font-weight':'bold', 'padding-right':'10px'}),
-					dcc.Input(id = 'loess_frac', value = 0.1),					
+					dcc.Input(id = 'loess_frac', value = 0.1),
 
 					html.Label('LLE Neighbours', style = {'font-weight':'bold', 'padding-right':'10px'}),
 					dcc.Input(id = 'lle-nbs', value = 0.1),
 
 					html.Label('LLE Components', style = {'font-weight':'bold', 'padding-right':'10px'}),
-					dcc.Input(id = 'lle-dr', value = 3),				
+					dcc.Input(id = 'lle-dr', value = 3),
 
 					], className = 'six columns'),
 
@@ -1206,7 +1207,7 @@ app.layout = html.Div([
 
 								html.Label('Clustering Method', style = {'font-weight':'bold', 'padding-right':'10px'}),
 								dcc.RadioItems(
-									id = 'clustering', 
+									id = 'clustering',
 									options=[
 								        {'label': 'affinity propagation', 'value': 'ap'},
 							            {'label': 'k-means', 'value': 'kmeans'},
@@ -1215,7 +1216,7 @@ app.layout = html.Div([
 									value = 'kmeans'),
 
 								html.Label('Number of Clusters', style = {'font-weight':'bold', 'padding-right':'10px'}),
-								dcc.Input(id = 'n_clusters', value = 10),								
+								dcc.Input(id = 'n_clusters', value = 10),
 
 								html.Label('Damping Factor', style = {'font-weight':'bold', 'padding-right':'10px'}),
 								dcc.Input(id = 'damping', value = 0.75),
@@ -1904,7 +1905,7 @@ def num_clicks_compute(options, pathname):
 		dataset_list.append([data['title'], json_entry.split('/')[-2]])
 
 	# print(dataset_list)
-		
+
 	return dataset_list[-1][1]
 
 @app2.callback(
@@ -3354,7 +3355,7 @@ def num_clicks_compute(root, figure, pathname):
 	# 				cell_label_list.append(line.strip())
 	if len(cell_label) > 0:
 		cell_label_df = pd.read_csv(cell_label[0],sep='\t',header=None,index_col=None,compression= 'gzip' if cell_label[0].split('.')[-1]=='gz' else None)
-		cell_label_list = cell_label_df[0].tolist()	
+		cell_label_list = cell_label_df[0].tolist()
 
 
 	cell_label_colors_dict = {}
@@ -3367,7 +3368,7 @@ def num_clicks_compute(root, figure, pathname):
 
 	# 			# for line in f:
 	# 			# 	print(line)
-	# 			# 	line = line.decode("utf-8") 
+	# 			# 	line = line.decode("utf-8")
 	# 			# 	print(line)
 	# 			# 	# line = line.strip().split('\t')
 	# 			# 	cell_label_colors_dict[str(line[1].strip('\n'))] = str(line[0].strip('\n'))
@@ -6749,7 +6750,7 @@ def update_table(slider, branch, figure, pathname):
 	if len(use_this_table) > 0:
 
 		df = pd.read_table(use_this_table).fillna('')
-		
+
 		pvals = [x for x in df.columns if 'pvalue' in x]
 
 		mapper =  {'zscore': '{0:.2f}',
@@ -7188,7 +7189,7 @@ def update_table(precomp, slider, branch):
 	if len(use_this_table) > 0:
 
 		df = pd.read_table(use_this_table).fillna('')
-		
+
 		pvals = [x for x in df.columns if 'pvalue' in x]
 
 		mapper =  {'zscore': '{0:.2f}',
@@ -7246,8 +7247,8 @@ def generate_report_url(directory):
 
 	proc = sb.Popen('pushd %s && zip -r %s.zip %s && popd' % (RESULTS_FOLDER, overview_folder, overview_folder), shell=True, executable='/bin/bash')
 	proc.wait()
-
-	ref.web('/tmp/RESULTS_FOLDER/%s/stream-outputs.zip' % (directory), '/tmp/RESULTS_FOLDER/%s/stream-outputs.zip' % (directory))
+    rs.reformat.reformat_web('/tmp/RESULTS_FOLDER/%s/stream-outputs.zip' % (directory), '/tmp/RESULTS_FOLDER/%s/stream-outputs.zip' % (directory))
+	# ref.web('/tmp/RESULTS_FOLDER/%s/stream-outputs.zip' % (directory), '/tmp/RESULTS_FOLDER/%s/stream-outputs.zip' % (directory))
 
 	return send_file('/tmp/RESULTS_FOLDER/%s/stream-outputs.zip' % (directory), attachment_filename = 'stream-outputs.zip', as_attachment = True)
 
