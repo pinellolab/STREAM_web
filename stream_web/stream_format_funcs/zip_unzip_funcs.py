@@ -4,7 +4,7 @@ import pandas as pd
 from . import general_funcs
 from zipfile import ZipFile
 
-def unzip_webzip(input_zip, macOSX_linux=True):
+def unzip_webzip(input_zip, macOSX_linux=False):
 
     """
     Parameters:
